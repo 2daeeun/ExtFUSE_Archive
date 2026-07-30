@@ -26,6 +26,7 @@
 
 | 디렉터리 | 역할 |
 |---|---|
+| [`pdf`](pdf/) | ExtFUSE 논문과 관련 발표자료 |
 | [`linux_origin/linux`](linux_origin/linux) | ExtFUSE 패치 전 Linux 기준 스냅샷 |
 | [`linux_ExtFUSE-1.0/linux`](linux_ExtFUSE-1.0/linux) | ExtFUSE 커널 fast path와 전용 BPF ABI가 추가된 Linux |
 | [`libfuse_origin/libfuse`](libfuse_origin/libfuse) | ExtFUSE용 libfuse가 분기한 기준 스냅샷 |
