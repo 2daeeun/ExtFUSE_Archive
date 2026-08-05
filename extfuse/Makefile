@@ -8,48 +8,54 @@ obj- := dummy.o
 # List of programs to build
 hostprogs-y := libextfuse.so
 
+# External-module Kbuild on the preserved 5.2 tree may expose srctree/objtree
+# as '.'.  Fig. 9 passes both absolute paths explicitly; the defaults preserve
+# the original in-tree behavior for other callers.
+EXTFUSE_KERNEL_SOURCE ?= $(srctree)
+EXTFUSE_KERNEL_BUILD ?= $(objtree)
+
 libextfuse.so-objs := \
 	src/ebpf.o src/libbpf.o src/bpf_load.o
 
 # Generate .c files based on kernel source
 %.c:
-	cp $(objtree)/samples/bpf/bpf_load.c $(PWD)/src/.
-	if [ -f $(objtree)/samples/bpf/libbpf.c ]; then \
-		cp $(objtree)/samples/bpf/libbpf.c $(PWD)/src/.; \
+	cp $(EXTFUSE_KERNEL_SOURCE)/samples/bpf/bpf_load.c $(PWD)/src/.
+	if [ -f $(EXTFUSE_KERNEL_SOURCE)/samples/bpf/libbpf.c ]; then \
+		cp $(EXTFUSE_KERNEL_SOURCE)/samples/bpf/libbpf.c $(PWD)/src/.; \
 	else \
-		cp $(objtree)/tools/lib/bpf/bpf.c $(PWD)/src/libbpf.c; \
+		cp $(EXTFUSE_KERNEL_SOURCE)/tools/lib/bpf/bpf.c $(PWD)/src/libbpf.c; \
 	fi;
 
 # Tell kbuild to always build the programs
 always := $(hostprogs-y)
 always += bpf/extfuse.o
 
-EXTRA_CFLAGS += -I$(PWD)/include -I$(objtree)/samples/bpf
-ifneq ("$(wildcard $(srctree)/samples/bpf/asm_goto_workaround.h)","")
-	EXTRA_CFLAGS += -I$(srctree)/samples/bpf/ -include asm_goto_workaround.h
+EXTRA_CFLAGS += -I$(PWD)/include -I$(EXTFUSE_KERNEL_SOURCE)/samples/bpf
+ifneq ("$(wildcard $(EXTFUSE_KERNEL_SOURCE)/samples/bpf/asm_goto_workaround.h)","")
+	EXTRA_CFLAGS += -I$(EXTFUSE_KERNEL_SOURCE)/samples/bpf/ -include asm_goto_workaround.h
 endif
 
 ifdef HOSTCFLAGS
 HOSTCFLAGS += -fPIC -I$(PWD)/include
-HOSTCFLAGS += -I$(objtree)/usr/include
-HOSTCFLAGS += -I$(objtree)/samples/bpf
-HOSTCFLAGS += -I$(objtree)/tools/lib/bpf
-HOSTCFLAGS += -I$(objtree)/tools/lib -I$(srctree)/tools/include
-HOSTCFLAGS += -I$(srctree)/tools/perf
+HOSTCFLAGS += -I$(EXTFUSE_KERNEL_BUILD)/usr/include
+HOSTCFLAGS += -I$(EXTFUSE_KERNEL_SOURCE)/samples/bpf
+HOSTCFLAGS += -I$(EXTFUSE_KERNEL_SOURCE)/tools/lib/bpf
+HOSTCFLAGS += -I$(EXTFUSE_KERNEL_SOURCE)/tools/lib -I$(EXTFUSE_KERNEL_SOURCE)/tools/include
+HOSTCFLAGS += -I$(EXTFUSE_KERNEL_SOURCE)/tools/perf
 HOSTLOADLIBES_libextfuse.so += -shared -lelf -lpthread
 else
 KBUILD_HOSTCFLAGS += -fPIC -I$(PWD)/include
-KBUILD_HOSTCFLAGS += -I$(objtree)/usr/include
-KBUILD_HOSTCFLAGS += -I$(srctree)/samples/bpf
-KBUILD_HOSTCFLAGS += -I$(srctree)/tools/lib/bpf
-KBUILD_HOSTCFLAGS += -I$(srctree)/tools/testing/selftests/bpf/
-KBUILD_HOSTCFLAGS += -I$(srctree)/tools/lib -I$(srctree)/tools/include
-KBUILD_HOSTCFLAGS += -I$(srctree)/tools/perf
+KBUILD_HOSTCFLAGS += -I$(EXTFUSE_KERNEL_BUILD)/usr/include
+KBUILD_HOSTCFLAGS += -I$(EXTFUSE_KERNEL_SOURCE)/samples/bpf
+KBUILD_HOSTCFLAGS += -I$(EXTFUSE_KERNEL_SOURCE)/tools/lib/bpf
+KBUILD_HOSTCFLAGS += -I$(EXTFUSE_KERNEL_SOURCE)/tools/testing/selftests/bpf/
+KBUILD_HOSTCFLAGS += -I$(EXTFUSE_KERNEL_SOURCE)/tools/lib -I$(EXTFUSE_KERNEL_SOURCE)/tools/include
+KBUILD_HOSTCFLAGS += -I$(EXTFUSE_KERNEL_SOURCE)/tools/perf
 HOSTLDLIBS_libextfuse.so += -shared -lelf -lpthread
 endif
 
-HOSTCFLAGS_bpf_load.o += -I$(objtree)/usr/include -Wno-unused-variable
-HOSTCFLAGS_libbpf.o += -I$(objtree)/usr/include -Wno-unused-variable
+HOSTCFLAGS_bpf_load.o += -I$(EXTFUSE_KERNEL_BUILD)/usr/include -Wno-unused-variable
+HOSTCFLAGS_libbpf.o += -I$(EXTFUSE_KERNEL_BUILD)/usr/include -Wno-unused-variable
 
 # Allows pointing LLC/CLANG to a LLVM backend with bpf support, redefine on cmdline:
 #  make samples/bpf/ LLC=~/git/llvm/build/bin/llc CLANG=~/git/llvm/build/bin/clang
@@ -90,7 +96,8 @@ $(src)/*.c: verify_target_bpf
 # useless for BPF samples.
 $(obj)/%.o: $(src)/%.c
 	$(CLANG) $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(EXTRA_CFLAGS) \
-		-I$(srctree)/tools/testing/selftests/bpf/ -I$(srctree)/fs/fuse/ \
+		-I$(EXTFUSE_KERNEL_SOURCE)/tools/testing/selftests/bpf/ \
+		-I$(EXTFUSE_KERNEL_SOURCE)/fs/fuse/ \
 		-D__KERNEL__ -D__BPF_TRACING__ -Wno-unused-value -Wno-pointer-sign \
 		-D__TARGET_ARCH_$(ARCH) -Wno-compare-distinct-pointer-types \
 		-Wno-gnu-variable-sized-type-not-at-end \
