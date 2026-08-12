@@ -1,34 +1,34 @@
-# ExtFUSE_Code 작업 지침
+# ExtFUSE_Code Working Guidelines
 
-## 적용 범위
+## Scope
 
-- 이 파일은 `/home/leedaeeun/Documents/github/ExtFUSE_Code`와 그 모든 하위 경로에 적용한다.
-- 이 저장소는 원본 참조용이며 **읽기 전용**으로 취급한다. 실제 파일 시스템 권한이 쓰기를 허용하더라도 이 규칙은 바뀌지 않는다.
-- 사용자가 이번 요청에서 명시적으로 허용한 이 `AGENTS.md`의 생성 자체만 예외이다. 이후에는 별도의 명시적 지시 없이 이 파일을 포함한 원본 저장소의 어떤 파일도 변경하지 않는다.
+- This file applies to `/home/leedaeeun/Documents/github/ExtFUSE_Code` and all of its subpaths.
+- This repository is a pristine reference and must be treated as **read-only**. This rule does not change even if the actual filesystem permissions allow writes.
+- The only exception is the creation of this `AGENTS.md` itself, which the user explicitly authorized in that request. From this point on, no file in the original repository — including this one — may be modified without a separate, explicit instruction.
 
-## 원본 저장소에서 허용되는 작업
+## Permitted operations in the original repository
 
-- 소스와 문서의 열람, 검색, 비교 및 정적 분석
-- 상태를 바꾸지 않는 Git 조회(예: `git status`, `git diff`, `git log`, `git show`, `git grep`, `git rev-parse`)
-- 파일 메타데이터와 디렉터리 구조의 읽기 전용 확인
+- Viewing, searching, comparing, and statically analyzing sources and documents
+- Non-mutating Git queries (e.g. `git status`, `git diff`, `git log`, `git show`, `git grep`, `git rev-parse`)
+- Read-only inspection of file metadata and directory structure
 
-## 원본 저장소에서 금지되는 작업
+## Prohibited operations in the original repository
 
-- 파일 생성, 수정, 삭제, 이름 변경 및 권한 변경
-- `apply_patch`, 편집기, 포매터 또는 코드 생성기를 원본에 적용하는 작업
-- 빌드, 테스트, 정적 분석 등 캐시·로그·오브젝트·임시 파일을 만들 가능성이 있는 명령
-- `git add`, `commit`, `checkout`, `switch`, `restore`, `reset`, `clean`, `stash`, `merge`, `rebase`, `cherry-pick`, `pull`, `push` 등 Git 상태나 외부 저장소를 변경하는 작업
-- 원본 저장소 내부를 작업 디렉터리, 빌드 디렉터리 또는 결과 저장 경로로 사용하는 작업
+- Creating, modifying, deleting, renaming files, or changing permissions
+- Applying `apply_patch`, editors, formatters, or code generators to the original
+- Builds, tests, static analysis, or any command that may produce caches, logs, objects, or temporary files
+- Git operations that change repository state or remote repositories, such as `git add`, `commit`, `checkout`, `switch`, `restore`, `reset`, `clean`, `stash`, `merge`, `rebase`, `cherry-pick`, `pull`, `push`
+- Using any path inside the original repository as a working directory, build directory, or output location
 
-## 수정·빌드·검증이 필요한 경우
+## When modification, build, or verification is required
 
-1. `/home/leedaeeun/Documents/github/research_exp` 아래에 작업마다 고유한 새 임시 디렉터리를 만든다.
-2. 필요한 코드 또는 저장소 전체를 그 디렉터리에 복사한다. 수정할 파일을 원본으로 연결하는 심볼릭 링크는 사용하지 않는다.
-3. `pwd -P`로 현재 경로가 `/home/leedaeeun/Documents/github/research_exp/` 아래인지 확인한 뒤에만 수정, 빌드, 테스트, 포매팅 또는 생성 작업을 수행한다.
-4. 빌드 산출물, 캐시, 로그, 패치 및 분석 결과도 모두 해당 임시 작업 공간 안에 저장한다.
-5. 결과를 원본 `ExtFUSE_Code`로 다시 복사하거나 동기화하지 않는다. 필요한 변경은 임시 작업 공간의 경로와 diff로 사용자에게 보고한다.
+1. Create a new, uniquely named temporary directory per task under `/home/leedaeeun/Documents/github/research_exp`.
+2. Copy the required code, or the entire repository, into that directory. Do not use symbolic links that point files to be modified back to the original.
+3. Verify with `pwd -P` that the current path is under `/home/leedaeeun/Documents/github/research_exp/` before performing any modification, build, test, formatting, or generation.
+4. Keep all build artifacts, caches, logs, patches, and analysis results inside that temporary workspace as well.
+5. Do not copy or sync results back into the original `ExtFUSE_Code`. Report any needed changes to the user as paths and diffs within the temporary workspace.
 
-예시:
+Example:
 
 ```bash
 EXTFUSE_WORKDIR="$(mktemp -d /home/leedaeeun/Documents/github/research_exp/ExtFUSE_Code.XXXXXX)"
@@ -37,10 +37,10 @@ cd -- "$EXTFUSE_WORKDIR"
 pwd -P
 ```
 
-- `/home/leedaeeun/Documents/github/research_exp`가 없거나 쓸 수 없으면 원본이나 다른 경로로 우회하지 말고 작업을 멈춘 뒤 사용자에게 알린다.
-- 작업을 시작하기 전에 원본의 커밋 ID와 복사한 작업 공간의 경로를 기록한다.
-- 사용자가 명시적으로 요청하지 않은 커밋, 푸시, 설치, 권한 상승 또는 외부 시스템 변경은 복사본에서도 수행하지 않는다.
+- If `/home/leedaeeun/Documents/github/research_exp` does not exist or is not writable, stop and notify the user instead of falling back to the original or any other path.
+- Before starting work, record the commit ID of the original and the path of the copied workspace.
+- Do not perform commits, pushes, installations, privilege escalation, or any external system change that the user did not explicitly request — not even in the copy.
 
-## 최우선 불변조건
+## Top-priority invariant
 
-**`/home/leedaeeun/Documents/github/ExtFUSE_Code`의 내용과 Git 상태는 작업 전후에 동일해야 한다.**
+**The contents and Git state of `/home/leedaeeun/Documents/github/ExtFUSE_Code` must be identical before and after any work.**
