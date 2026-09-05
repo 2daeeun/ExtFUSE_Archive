@@ -22,11 +22,13 @@
 > **ExtFUSE 브랜치가 갈라진 정확한 기준 스냅샷**을 뜻한다. 특히
 > libfuse 분석에서 이 구분이 중요하다.
 
-## 디렉터리 구성
+## 디렉터리·주요 파일 구성
 
-| 디렉터리 | 역할 |
+| 경로 | 역할 |
 |---|---|
-| [`pdf`](pdf/) | ExtFUSE 논문과 관련 발표자료 |
+| [`pdf`](pdf/) | ExtFUSE 논문, 관련 발표자료, Figure 6·9 비교용 CSV |
+| [`pdf/fig9_requests.csv`](pdf/fig9_requests.csv) | Figure 9의 커널 컴파일·압축 해제 워크로드별 FUSE 요청 수 |
+| [`pdf/fig6_throughput.csv`](pdf/fig6_throughput.csv) | Figure 6의 Filebench 데이터 워크로드별 처리량(ops/sec) |
 | [`linux_origin/linux`](linux_origin/linux) | ExtFUSE 패치 전 Linux 기준 스냅샷 |
 | [`linux_ExtFUSE-1.0/linux`](linux_ExtFUSE-1.0/linux) | ExtFUSE 커널 fast path와 전용 BPF ABI가 추가된 Linux |
 | [`libfuse_origin/libfuse`](libfuse_origin/libfuse) | ExtFUSE용 libfuse가 분기한 기준 스냅샷 |
@@ -37,6 +39,64 @@
 `linux_*`와 `libfuse_*`는 각각 같은 원격 저장소의 기준점/수정본 쌍이다.
 반면 `extfuse/`는 기존 프로젝트를 수정한 포크가 아니라 ExtFUSE를 위해
 새로 작성된 지원 코드이므로 대응하는 `extfuse_origin/`이 없다.
+
+## 논문 Figure 6·9 비교용 CSV
+
+두 CSV는 [보관된 논문](pdf/atc19-bijlani.pdf)의 Figure 6·9에 대응하는
+수치를 표로 정리한 비교용 자료다. 각 행은 하나의 조건에 대한 값이며,
+현재 포팅된 ExtFUSE의 새 실험 결과를 기록한 파일이 아니다.
+
+### `fig9_requests.csv`: Figure 9의 요청 수
+
+[`pdf/fig9_requests.csv`](pdf/fig9_requests.csv)는 Linux 4.18.0 커널의
+컴파일(`make tinyconfig; make -j4`)과 압축 해제(`tar xf`) 워크로드에서
+userspace StackFS daemon에 전달된 요청 수를 담는다. 헤더를 제외하면
+**42행**으로, 워크로드마다 7개 opcode와 3개 설정을 기록한다.
+
+| 열 | 의미 |
+|---|---|
+| `workload` | `compile`: 커널 컴파일, `decompress`: 커널 소스 압축 해제 |
+| `opcode` | 집계 대상 FUSE 요청 종류. 컴파일은 `GETATTR`, `GETXATTR`, `LOOKUP`, `OPEN`, `READ`, `SETATTR`, `WRITE`; 압축 해제는 `OPEN` 대신 `CREATE` |
+| `config` | 논문의 `Opt`, `MDOpt`, `AllOpt` 설정 |
+| `requests` | 해당 조건에서 daemon에 전달된 요청 수(건). 초당 처리량이나 실행 시간은 아님 |
+
+Figure 9에 대응하는 요청 수만 포함하므로 전체 syscall 수나 모든 FUSE
+opcode의 합계로 해석하지 않는다. 값이 `0`이어도 커널에서 처리한
+동일 종류의 작업까지 없었다는 뜻은 아니다. 실행 시간과 EXT4 결과는
+이 CSV에 포함되어 있지 않다.
+
+### `fig6_throughput.csv`: Figure 6의 처리량
+
+[`pdf/fig6_throughput.csv`](pdf/fig6_throughput.csv)는 xattr를 지원하는
+FUSE/ExtFUSE StackFS와 EXT4의 **Filebench 데이터 마이크로벤치마크
+처리량**을 담는다. 헤더를 제외하면 **128행**으로, 4개 워크로드 ×
+워크로드별 2개 thread/file 설정 × 4개 I/O 크기 × 4개 config다.
+
+| 열 | 의미 |
+|---|---|
+| `workload` | `RR`: random read, `RW`: random write, `SR`: sequential read, `SW`: sequential write |
+| `setting` | thread/file 수. 모든 워크로드의 `1th,1f`는 1 thread·1 file, RR/RW의 `32th,1f`는 32 threads·공유 1 file, SR/SW의 `32th,32f`는 32 threads·32 files |
+| `io_size` | 작업당 I/O 크기: `4KB`, `32KB`, `128KB`, `1MB` |
+| `config` | `EXT4`, `Opt`, `MDOpt`, `AllOpt` |
+| `ops_per_sec` | 초당 작업 수(ops/sec). 바이트 단위 대역폭이나 daemon 요청 수와 구분 |
+
+`setting` 값에는 쉼표가 들어 있어 CSV에서 `"1th,1f"`처럼 큰따옴표로
+묶여 있다. 파일을 읽을 때는 단순한 쉼표 분할 대신 CSV 파서를 사용한다.
+
+### 공통 config와 데이터 범위
+
+아래 설정의 의미는 논문 Table 5를 따른다.
+
+| config | 의미 |
+|---|---|
+| `EXT4` | 네이티브 EXT4 비교 기준. `fig6_throughput.csv`에만 포함 |
+| `Opt` | FUSE StackFS의 기존 최적화: 128KB writes, splice, writeback cache, multithreading |
+| `MDOpt` | `Opt` + ExtFUSE의 lookup·attribute·xattr 응답 캐시 |
+| `AllOpt` | `MDOpt` + read/write 요청을 하위(host) 파일시스템으로 전달하는 passthrough |
+
+두 CSV에는 원시 실행 로그, 반복 측정, 오차, 수치 추출 방법이 기록되어
+있지 않다. 개별 값의 추출 정밀도는 CSV만으로 확인할 수 없으므로,
+논문 비교용 참고값으로 사용하고 새로 실행한 실험의 측정값과 구분한다.
 
 ## 보존된 Git 기준점
 

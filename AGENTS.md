@@ -21,8 +21,9 @@ the shell's current working directory.
   nested `.git` dirs were intentionally deleted — see
   `ExtFUSE_Code/diffs/POST_DELETE_VERIFICATION.md`).
 - **Read `ExtFUSE_Code/README.md` first** (Korean) — it documents the directory layout, the
-  preserved git base/HEAD commit pairs for each lineage, and ready-made comparison commands. This
-  file only covers write-protection policy; it does not duplicate that orientation content.
+  preserved git base/HEAD commit pairs for each lineage, ready-made comparison commands, and
+  the Figure 6/9 reference CSV schemas. This file summarizes archive contents and write-protection
+  policy; use the README for detailed orientation.
 - This is the **historical baseline snapshot**, distinct from the active/live ExtFUSE kernel port,
   which lives in the sibling `linux` + `fuse_kbuild_tools` repos. There is no file-path coupling
   between them — they represent the same research lineage at different points in time.
@@ -37,7 +38,27 @@ the shell's current working directory.
 | `ExtFUSE_Code/libfuse_ExtFUSE-1.0/libfuse` | Same libfuse tree with ExtFUSE capability/FD-passing applied |
 | `ExtFUSE_Code/extfuse/` | Standalone BPF policy programs + `libextfuse.so` support library (no `_origin` counterpart — new code, not a fork) |
 | `ExtFUSE_Code/diffs/` | Preserved patches, commit metadata/URLs, mailboxes, bundles, and SHA-256 sums for all three lineages, captured before the nested `.git` dirs were removed |
-| `ExtFUSE_Code/pdf/` | Paper and slides |
+| `ExtFUSE_Code/pdf/` | Paper, slides, and figure reference CSVs |
+| `ExtFUSE_Code/pdf/fig9_requests.csv` | Figure 9 reference request counts for kernel compilation and decompression, by opcode and StackFS config |
+| `ExtFUSE_Code/pdf/fig6_throughput.csv` | Figure 6 reference Filebench throughput, by workload, thread/file setting, I/O size, and config |
+
+### Figure reference CSVs
+
+- [`pdf/fig9_requests.csv`](pdf/fig9_requests.csv) has 42 data rows with columns
+  `workload,opcode,config,requests`. It covers Linux 4.18.0 `compile` and `decompress`
+  workloads under `Opt`, `MDOpt`, and `AllOpt`. `requests` counts requests delivered to the
+  userspace daemon for the listed FUSE opcodes; it is neither an operation rate nor elapsed time.
+- [`pdf/fig6_throughput.csv`](pdf/fig6_throughput.csv) has 128 data rows with columns
+  `workload,setting,io_size,config,ops_per_sec`. It covers Filebench random/sequential
+  reads/writes (`RR`, `RW`, `SR`, `SW`), 4KB/32KB/128KB/1MB I/O sizes, and `EXT4`, `Opt`,
+  `MDOpt`, `AllOpt`. Settings encode thread/file counts: `1th,1f` for every workload,
+  `32th,1f` for random I/O, and `32th,32f` for sequential I/O. Throughput is in operations
+  per second, not bytes per second or daemon request counts.
+- The figure context and config definitions come from the archived
+  [`pdf/atc19-bijlani.pdf`](pdf/atc19-bijlani.pdf), Figures 6/9 and Table 5. These CSVs are
+  paper-comparison reference tables, not evidence of a new run of the active ExtFUSE port.
+  They do not include raw run logs, repetitions, uncertainty, or the numeric extraction method.
+  See [`README.md`](README.md#논문-figure-69-비교용-csv) for column and config details.
 
 ## Scope
 
