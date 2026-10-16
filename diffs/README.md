@@ -1,140 +1,144 @@
-# ExtFUSE 변경 이력 보존 자료
+# Preserved ExtFUSE Change History
 
-이 디렉터리는 다섯 하위 저장소의 `.git`을 삭제한 뒤에도
-`ExtFUSE_Code`만으로 원본과 ExtFUSE 변경을 분석할 수 있도록 만든
-아카이브다. 생성 기준일은 2026-07-14이다.
+**English** | [한국어](README.ko.md)
 
-같은 날 다섯 하위 `.git`의 제거가 완료되었다. 남은 source tree와 이
-아카이브의 삭제 후 무결성 검사는
-[`POST_DELETE_VERIFICATION.md`](POST_DELETE_VERIFICATION.md)에 기록했다.
+This directory is an archive that allows the baseline code and ExtFUSE changes
+to be analyzed using `ExtFUSE_Code` after the five nested repositories' `.git`
+directories have been deleted. It was created on 2026-07-14.
 
-보존 범위는 사용자의 요청대로 **변경 직전 원본 commit과 그 이후
-ExtFUSE 관련 commit**에 집중한다. Linux의 85만여 upstream commit 전체를
-복제하는 대신 원본/수정 source tree, 정확한 변경 patch, commit object와
-원본 URL을 함께 남긴다.
+All five nested `.git` directories were removed on the same day. The
+[`POST_DELETE_VERIFICATION.md`](POST_DELETE_VERIFICATION.md) record documents the
+integrity checks on the remaining source trees and preservation materials.
 
-## 변경 시작점과 최종 시점
+As requested when the archive was created, preservation focuses on **the exact
+baseline commit immediately before the ExtFUSE changes and the subsequent
+ExtFUSE-related commits**. It retains baseline/modified source trees, exact
+patches, commit objects, and original URLs, rather than another copy of Linux's
+entire history of more than 850,000 upstream commits.
 
-| 대상 | 변경 직전 원본 또는 최초 시점 | 최종 시점 | 전체 비교 |
+## Starting points and endpoints
+
+| Component | Baseline immediately before changes, or first commit | Endpoint | Full comparison |
 |---|---|---|---|
-| Linux | [`1d039859330b`](https://github.com/extfuse/linux/commit/1d039859330b874d48080885eb31f4f129c246f1) · [원본 코드](https://github.com/extfuse/linux/tree/1d039859330b874d48080885eb31f4f129c246f1) | [`d95ca8642fce`](https://github.com/extfuse/linux/commit/d95ca8642fce0214cf2ebaaa792ba538d4d8381d) | [compare](https://github.com/extfuse/linux/compare/1d039859330b874d48080885eb31f4f129c246f1..d95ca8642fce0214cf2ebaaa792ba538d4d8381d) |
-| libfuse | [`386b1b6e3d0f`](https://github.com/extfuse/libfuse/commit/386b1b6e3d0fcf7e2dfd5473e867284410dfa624) · [원본 코드](https://github.com/extfuse/libfuse/tree/386b1b6e3d0fcf7e2dfd5473e867284410dfa624) | [`5b381d81f0d2`](https://github.com/extfuse/libfuse/commit/5b381d81f0d2a4a37ca4c73a3c8e5e778138b32d) | [compare](https://github.com/extfuse/libfuse/compare/386b1b6e3d0fcf7e2dfd5473e867284410dfa624..5b381d81f0d2a4a37ca4c73a3c8e5e778138b32d) |
-| extfuse | 별도 vanilla 원본 없음 · [최초 `5462699b5414`](https://github.com/extfuse/extfuse/commit/5462699b5414a739bc6c3221157827ac42250334) · [최초 코드](https://github.com/extfuse/extfuse/tree/5462699b5414a739bc6c3221157827ac42250334) | [`d2acdb1c8e45`](https://github.com/extfuse/extfuse/commit/d2acdb1c8e4531562fc77fe566896e771d03026e) | [최초→현재](https://github.com/extfuse/extfuse/compare/5462699b5414a739bc6c3221157827ac42250334..d2acdb1c8e4531562fc77fe566896e771d03026e) |
+| Linux | [`1d039859330b`](https://github.com/extfuse/linux/commit/1d039859330b874d48080885eb31f4f129c246f1) · [baseline code](https://github.com/extfuse/linux/tree/1d039859330b874d48080885eb31f4f129c246f1) | [`d95ca8642fce`](https://github.com/extfuse/linux/commit/d95ca8642fce0214cf2ebaaa792ba538d4d8381d) | [compare](https://github.com/extfuse/linux/compare/1d039859330b874d48080885eb31f4f129c246f1..d95ca8642fce0214cf2ebaaa792ba538d4d8381d) |
+| libfuse | [`386b1b6e3d0f`](https://github.com/extfuse/libfuse/commit/386b1b6e3d0fcf7e2dfd5473e867284410dfa624) · [baseline code](https://github.com/extfuse/libfuse/tree/386b1b6e3d0fcf7e2dfd5473e867284410dfa624) | [`5b381d81f0d2`](https://github.com/extfuse/libfuse/commit/5b381d81f0d2a4a37ca4c73a3c8e5e778138b32d) | [compare](https://github.com/extfuse/libfuse/compare/386b1b6e3d0fcf7e2dfd5473e867284410dfa624..5b381d81f0d2a4a37ca4c73a3c8e5e778138b32d) |
+| extfuse | No separate vanilla baseline · [first commit `5462699b5414`](https://github.com/extfuse/extfuse/commit/5462699b5414a739bc6c3221157827ac42250334) · [initial code](https://github.com/extfuse/extfuse/tree/5462699b5414a739bc6c3221157827ac42250334) | [`d2acdb1c8e45`](https://github.com/extfuse/extfuse/commit/d2acdb1c8e4531562fc77fe566896e771d03026e) | [compare](https://github.com/extfuse/extfuse/compare/5462699b5414a739bc6c3221157827ac42250334..d2acdb1c8e4531562fc77fe566896e771d03026e) |
 
-Linux와 libfuse의 원본 commit은 각 ExtFUSE branch의 정확한 merge-base다.
-`extfuse`는 새로 작성된 library/BPF 저장소이므로 최초 commit부터 전체
-29개를 기록한다.
+The Linux and libfuse baseline commits are the exact merge-bases of their
+ExtFUSE branches. Since `extfuse` is a newly written library/BPF repository,
+all 29 commits are recorded from its initial commit onward.
 
-## commit URL과 원본 object
+## Commit URLs and original objects
 
-| 대상 | 사람이 읽는 commit URL 목록 | 기계 판독 metadata | 정확한 raw object |
+| Component | Readable commit URL list | Machine-readable metadata | Exact raw objects |
 |---|---|---|---|
 | Linux | [`linux/COMMITS.md`](linux/COMMITS.md) | [`linux/commits.tsv`](linux/commits.tsv) | [`linux/raw-commits/`](linux/raw-commits) |
 | libfuse | [`libfuse/COMMITS.md`](libfuse/COMMITS.md) | [`libfuse/commits.tsv`](libfuse/commits.tsv) | [`libfuse/raw-commits/`](libfuse/raw-commits) |
 | extfuse | [`extfuse/COMMITS.md`](extfuse/COMMITS.md) | [`extfuse/commits.tsv`](extfuse/commits.tsv) | [`extfuse/raw-commits/`](extfuse/raw-commits) |
 
-`COMMITS.md`의 모든 commit SHA는 원래 GitHub commit URL과 연결된다.
-`commits.tsv`에는 다음을 함께 기록한다.
+Every commit SHA in `COMMITS.md` links to its original GitHub commit URL.
+Each `commits.tsv` also records:
 
-- commit/tree/parent의 full SHA
-- 원본 commit URL과 해당 시점 전체 source snapshot URL
-- raw tree API URL
-- 각 parent URL과 parent→commit compare URL
-- 원본 시작점→해당 commit compare URL
-- author/committer 이름·이메일·ISO 8601 시각
-- GPG signature header 존재 여부, 제목과 raw object 경로
+- Full commit/tree/parent SHAs
+- Original commit URL and complete source snapshot URL for that commit
+- Raw tree API URL
+- Each parent URL and parent-to-commit comparison URL
+- Baseline-to-commit comparison URL
+- Author/committer names, email addresses, and ISO 8601 timestamps
+- GPG signature header presence, subject, and raw object paths
 
-사람이 읽는 `.commit` 파일과 별도로 `.commit.b64`가 원본 commit
-object를 마지막 byte까지 보존한다. 43개 Base64 object는 다음 명령으로
-decode한 SHA가 파일명의 원본 SHA와 모두 일치함을 확인했다.
+Alongside the readable `.commit` files, `.commit.b64` preserves each original
+commit object down to its final byte. All 43 Base64 objects were decoded and
+verified to reproduce the original SHAs in their filenames using this command:
 
 ```bash
 base64 --decode diffs/linux/raw-commits/<SHA>.commit.b64 |
   git hash-object -t commit --stdin
 ```
 
-## 코드 변경 자료
+## Code change records
 
-| 대상 | 누적 full-index patch | 커밋별 mailbox | 파일→commit URL | 그래프 | 통계 |
+| Component | Cumulative full-index patch | Per-commit mailbox | File → commit URL | Graph | Statistics |
 |---|---|---|---|---|---|
 | Linux | [`linux/changes.patch`](linux/changes.patch) | [`linux/series.mbox`](linux/series.mbox) | [`linux/files.tsv`](linux/files.tsv) | [`linux/history.graph.txt`](linux/history.graph.txt) | [diffstat](linux/diffstat.txt), [name-status](linux/name-status.tsv), [numstat](linux/numstat.tsv) |
 | libfuse | [`libfuse/changes.patch`](libfuse/changes.patch) | [`libfuse/series.mbox`](libfuse/series.mbox) | [`libfuse/files.tsv`](libfuse/files.tsv) | [`libfuse/history.graph.txt`](libfuse/history.graph.txt) | [diffstat](libfuse/diffstat.txt), [name-status](libfuse/name-status.tsv), [numstat](libfuse/numstat.tsv) |
 | extfuse | [`extfuse/changes.patch`](extfuse/changes.patch) | [`extfuse/series.mbox`](extfuse/series.mbox) | [`extfuse/files.tsv`](extfuse/files.tsv) | [`extfuse/history.graph.txt`](extfuse/history.graph.txt) | [diffstat](extfuse/diffstat.txt), [name-status](extfuse/name-status.tsv), [numstat](extfuse/numstat.tsv) |
 
-- `changes.patch`: `git diff --binary --full-index` 누적 결과다.
-- `series.mbox`: 비-merge commit별 작성자, 날짜, message와 patch다.
-- `files.tsv`: 각 변경 파일과 그 파일을 건드린 commit SHA/원본 URL의
-  역색인이다.
-- `history.graph.txt`: merge topology, full commit/tree/parent ID와
-  author/committer 정보를 보존한다.
+- `changes.patch`: cumulative output from `git diff --binary --full-index`.
+- `series.mbox`: author, date, message, and patch for each non-merge commit.
+- `files.tsv`: reverse index mapping each changed file to the SHAs and original
+  URLs of the commits that touched it.
+- `history.graph.txt`: merge topology, full commit/tree/parent IDs, and
+  author/committer information.
 
-누적 통계는 Linux 16 files(+508/-4), libfuse 3 files(+27/-2),
-extfuse 현재 tree 11 files(+1,710)다.
+Cumulative statistics are 16 files (+508/-4) for Linux, three files (+27/-2)
+for libfuse, and 11 files (+1,710) for the extfuse archived tree.
 
-### merge 기록
+### Merge records
 
-Linux merge `2473946e1ce9...`는 merge tree가 second-parent tree와 같아
-별도 conflict-resolution 코드는 없다. 원래 두 parent와 raw signed
-commit object는 `linux/commits.tsv`와 `raw-commits`에 있다.
+Linux merge `2473946e1ce9...` has the same tree as its second parent, so it
+contains no additional conflict-resolution code. Its two original parents and
+raw signed commit object are preserved in `linux/commits.tsv` and `raw-commits`.
 
-extfuse merge `b853870db92b...`는 두 parent를 결합하면서 최종 tree에
-영향을 준다. 다음 세 관점을 모두 보존했다.
+The extfuse merge `b853870db92b...` combines its two parents and affects the
+final tree. All three views are preserved:
 
-- [first-parent diff](extfuse/merges/b853870.first-parent.patch)
-- [second-parent diff](extfuse/merges/b853870.second-parent.patch)
-- [combined metadata/diff](extfuse/merges/b853870.combined.diff)
+- [First-parent diff](extfuse/merges/b853870.first-parent.patch)
+- [Second-parent diff](extfuse/merges/b853870.second-parent.patch)
+- [Combined metadata/diff](extfuse/merges/b853870.combined.diff)
 
-일반 `format-patch`는 merge commit 자체는 생략하지만, 이 이력에서는 양쪽
-branch의 비-merge commit 28개를 `series.mbox` 순서대로 empty history에
-적용하면 정확한 HEAD tree `d59ddb65225c9b7dc492939e74d229d21640a09c`가
-재구성된다. merge object와 두-parent topology는 `raw-commits`,
-`history.graph.txt`, 위 세 merge diff에 별도로 보존했다. 누적
-`extfuse/changes.patch`도 처음부터 정확한 최종 tree를 만든다.
+Although ordinary `format-patch` omits merge commits, applying the 28 non-merge
+commits from both branches in `series.mbox` order to an empty history
+reconstructs the exact HEAD tree
+`d59ddb65225c9b7dc492939e74d229d21640a09c` for this history. The merge object
+and two-parent topology are separately preserved in `raw-commits`,
+`history.graph.txt`, and the three merge diffs above. The cumulative
+`extfuse/changes.patch` also produces the exact final tree from scratch.
 
-## Git metadata와 bundle
+## Git metadata and bundles
 
-- [`git-metadata/`](git-metadata): 삭제 전 다섯 checkout의 HEAD,
-  branch/detached 상태, refs/tags, reflog, sanitized config, status,
-  object 통계, hook/worktree/special-ref 상태
+- [`git-metadata/`](git-metadata): HEADs, branch/detached states, refs/tags,
+  reflogs, sanitized configs, statuses, object statistics, and
+  hook/worktree/special-ref states for all five checkouts before deletion.
 - [`git-metadata/object-integrity.txt`](git-metadata/object-integrity.txt):
-  pack 크기·SHA-256, clone 쌍의 동일성, connectivity 검사
-- [`bundles/extfuse.bundle`](bundles/extfuse.bundle): extfuse 29개 commit
-  전체의 완전한 Git bundle
-- [`bundles/libfuse.bundle`](bundles/libfuse.bundle): libfuse 1,799개
-  commit과 114개 tag 전체의 완전한 Git bundle
+  pack sizes and SHA-256 checksums, clone-pair identity, and connectivity checks.
+- [`bundles/extfuse.bundle`](bundles/extfuse.bundle): complete Git bundle of
+  all 29 extfuse commits.
+- [`bundles/libfuse.bundle`](bundles/libfuse.bundle): complete Git bundle of
+  all 1,799 libfuse commits and 114 tags.
 - [`bundles/linux-extfuse-changes.bundle`](bundles/linux-extfuse-changes.bundle):
-  원본 기준점 이후 Linux의 9 commit, 38 tree, 23 blob을 보존한 변경 전용
-  bundle; 기준 commit을 prerequisite로 요구한다.
-- [bundle 복원 및 Linux 전체 이력 제외 근거](bundles/README.md)
+  changes-only bundle preserving nine commits, 38 trees, and 23 blobs after the
+  Linux baseline; requires the baseline commit as a prerequisite.
+- [Bundle restoration and reasons for excluding the complete Linux history](bundles/README.md)
 
-삭제 전 Linux 두 clone의 `.git`은 각각 약 2.9 GB였고 동일한 850,176개
-upstream commit을 담고 있었다. 변경 이후 기록에 집중한다는 요청에 따라
-2.9 GB짜리 전체 bundle을 다시 복사하지 않았다. 대신 원본/최종 source
-tree, 변경 구간의 commit/tree/blob bundle, raw
-commit·patch·URL·refs metadata를 보존했다.
+Before deletion, each Linux clone's `.git` occupied about 2.9 GB and contained
+the same 850,176 upstream commits. Following the request to focus on the
+ExtFUSE changes, another 2.9 GB complete bundle was not copied. Instead, the
+archive preserves the baseline/final source trees, a commit/tree/blob bundle
+for the changed range, and raw commits, patches, URLs, and refs metadata.
 
-## 빠른 확인
+## Quick inspection
 
-저장소 최상위에서 실행한다.
+Run these commands from the repository root.
 
 ```bash
-# 원본 URL과 commit별 변경
+# Original URLs and per-commit changes
 less diffs/linux/COMMITS.md
 less diffs/libfuse/COMMITS.md
 less diffs/extfuse/COMMITS.md
 
-# 누적/파일별 변경
+# Cumulative and per-file changes
 git apply --stat diffs/linux/changes.patch
 git apply --numstat diffs/libfuse/changes.patch
 rg '^diff --git' diffs/extfuse/changes.patch
 
-# 전체 무결성
+# Integrity of all files covered by the manifest
 sha256sum -c diffs/SHA256SUMS
 ```
 
-## patch 검증
+## Patch verification
 
-다음 명령은 파일을 수정하지 않는다.
+The following commands do not modify files.
 
 ```bash
 git apply --check \
@@ -154,22 +158,22 @@ git apply --check --reverse \
   diffs/libfuse/changes.patch
 ```
 
-네 검사는 모두 종료 코드 0으로 통과했다. Linux와 libfuse
-`series.mbox`를 각각 base tree 위에 적용해 만든 tree ID도 원래
-ExtFUSE HEAD tree와 일치했다.
+All four checks passed with exit code 0. Applying the Linux and libfuse
+`series.mbox` files to their respective base trees also produced the original
+ExtFUSE HEAD tree IDs.
 
-extfuse 누적 patch는 empty tree 위에 적용했을 때 현재 HEAD tree와
-일치했다. `series.mbox`의 28개 비-merge patch만 empty history에 적용한
-tree도 같은 값으로 일치했다.
+Applying the extfuse cumulative patch to an empty tree reproduced its archived
+HEAD tree. Applying only the 28 non-merge patches in `series.mbox` to an empty
+history produced the same tree.
 
 ```text
 empty tree:   4b825dc642cb6eb9a060e54bf8d69288fbee4904
 extfuse HEAD: d59ddb65225c9b7dc492939e74d229d21640a09c
 ```
 
-## 생성 명령
+## Generation commands
 
-Linux와 libfuse 누적 patch의 기본 형식은 다음과 같다.
+The basic cumulative patch command for Linux and libfuse was:
 
 ```bash
 git -C REPOSITORY diff \
@@ -178,7 +182,7 @@ git -C REPOSITORY diff \
   BASE..HEAD > changes.patch
 ```
 
-커밋별 mailbox는 다음 형식으로 생성했다.
+The per-commit mailbox was generated with:
 
 ```bash
 git -C REPOSITORY format-patch \
@@ -187,16 +191,26 @@ git -C REPOSITORY format-patch \
   --find-renames=50% BASE..HEAD > series.mbox
 ```
 
-정확한 commit object는 `git cat-file commit <SHA>` 결과를 Base64로
-인코딩해 보존했다.
+Exact commit objects were preserved by Base64-encoding the output of
+`git cat-file commit <SHA>`.
 
-## 무결성과 한계
+## Integrity and limitations
 
-[`SHA256SUMS`](SHA256SUMS)는 `diffs/` 아래 모든 보존 파일(bundle과
-문서 포함)의 SHA-256을 기록한다. 이 파일 자체는 checksum 대상에서
-제외한다.
+[`SHA256SUMS`](SHA256SUMS) records SHA-256 checksums for all preserved files
+under `diffs/`, including bundles and documentation, excluding the manifest
+itself.
 
-이 자료만으로 ExtFUSE 변경 전/후 코드, 모든 변경 commit의 내용·서명,
-중간 patch, 파일별 이력과 원본 웹 URL을 분석할 수 있다. 다만 Linux
-원본 기준점보다 오래된 85만여 upstream 역사를 완전히 오프라인 탐색하는
-용도는 아니며, 그 범위는 공개 원격 URL을 사용한다.
+For the English/Korean documentation update, the previous manifest was retained
+byte-for-byte as [`SHA256SUMS.archive`](SHA256SUMS.archive). It records the
+documentation hashes from before translation and is a historical record,
+rather than a manifest for the translated files. The active `SHA256SUMS`
+updates only the seven existing Markdown entries and adds the seven Korean
+counterparts under `diffs/` and the preserved manifest. Every existing
+non-document payload retains its original path and checksum. The root READMEs
+and `AGENTS.md` are outside this manifest's scope.
+
+The archive supports analysis of the code before/after ExtFUSE, the content and
+signatures of all changed commits, intermediate patches, per-file history, and
+original web URLs. It does not provide completely offline exploration of the
+more than 850,000 upstream Linux commits before the baseline; use the public
+remote URLs for that history.

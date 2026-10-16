@@ -1,13 +1,16 @@
-# 하위 `.git` 삭제 후 검증 기록
+# Verification After Deleting the Nested `.git` Directories
 
-검증일은 2026-07-14(Asia/Seoul)이다. 사용자가 다섯 하위 `.git`
-디렉터리를 삭제한 뒤, 현재 source와 삭제 전에 만든 보존 자료가 그대로
-분석·복원 가능한지 다시 확인했다.
+**English** | [한국어](POST_DELETE_VERIFICATION.ko.md)
 
-## 삭제 상태
+Verification date: 2026-07-14 (Asia/Seoul). After the user deleted the five
+nested `.git` directories, the remaining sources and preservation materials
+created before deletion were checked again for analysis and restoration.
+This document records the state and checks on that date.
 
-`find . -type d -name .git` 결과는 최상위 `./.git` 하나뿐이다. 삭제된
-하위 Git metadata 경로는 다음과 같다.
+## Deletion status
+
+`find . -type d -name .git` returned only the top-level `./.git`. The following
+nested Git metadata directories had been deleted:
 
 ```text
 extfuse/.git
@@ -17,16 +20,17 @@ libfuse_origin/libfuse/.git
 libfuse_ExtFUSE-1.0/libfuse/.git
 ```
 
-다섯 source 디렉터리는 모두 남아 있으며 이제 최상위 저장소가 일반
-파일로 추적할 수 있는 상태다.
+All five source directories remained and could now be tracked as ordinary
+files by the top-level repository.
 
-## source tree 일치
+## Source tree identity
 
-각 source 디렉터리를 외부 임시 Git object database에 `git add -f -A`로
-읽어 파일 내용, 실행 bit와 symlink를 포함한 tree ID를 계산했다. 삭제 전
-기록한 원래 Git tree와 모두 정확히 일치했다.
+Each source directory was read into an external temporary Git object database
+with `git add -f -A`, and its tree ID was calculated, including file contents,
+executable bits, and symlinks. Every tree exactly matched the original Git tree
+recorded before deletion.
 
-| source | 삭제 전 commit | 검증된 tree |
+| Source | Commit before deletion | Verified tree |
 |---|---|---|
 | `linux_origin/linux` | `1d039859330b874d48080885eb31f4f129c246f1` | `5988dc49e1534ec6e1fadca6c5b5231248a63b41` |
 | `linux_ExtFUSE-1.0/linux` | `d95ca8642fce0214cf2ebaaa792ba538d4d8381d` | `0b6b2080e7922a8301df156cd947aeddffd49145` |
@@ -34,28 +38,39 @@ libfuse_ExtFUSE-1.0/libfuse/.git
 | `libfuse_ExtFUSE-1.0/libfuse` | `5b381d81f0d2a4a37ca4c73a3c8e5e778138b32d` | `500a56d0fd38f2ed1d8c82271d54abbaf1777499` |
 | `extfuse` | `d2acdb1c8e4531562fc77fe566896e771d03026e` | `d59ddb65225c9b7dc492939e74d229d21640a09c` |
 
-## 보존 자료 검증
+## Verification of preserved materials
 
-- `diffs/SHA256SUMS`: 이 문서를 포함한 최종 보존 파일 132개 모두 `OK`
-- Linux/libfuse 누적 patch: 원본에 정방향, ExtFUSE source에 역방향
-  `git apply --check` 네 건 모두 종료 코드 0
-- `extfuse.bundle`, `libfuse.bundle`: 삭제 후에도 complete history 검증과
-  bare clone 성공
-- `linux-extfuse-changes.bundle`: 보존된 Linux 원본 source로 base tree와
-  raw base commit을 재구성한 뒤 fetch 성공
-- 복원된 Linux 변경 이력: 9 commits, 최종 tree `0b6b2080...`,
-  `git fsck --connectivity-only --no-dangling` 종료 코드 0
+- `diffs/SHA256SUMS`: all 132 final preserved files, including this document,
+  reported `OK` in the original verification.
+- Linux/libfuse cumulative patches: all four `git apply --check` checks passed
+  with exit code 0, forward against the baselines and reverse against the
+  ExtFUSE source trees.
+- `extfuse.bundle` and `libfuse.bundle`: complete-history verification and bare
+  cloning succeeded after deletion.
+- `linux-extfuse-changes.bundle`: fetching succeeded after reconstructing the
+  base tree and raw base commit from the preserved Linux baseline source.
+- Restored Linux change history: nine commits, final tree `0b6b2080...`, and
+  `git fsck --connectivity-only --no-dangling` exit code 0.
 
-Linux 기준점보다 앞선 전체 upstream object database는 변경 중심 보존
-범위에 포함되지 않는다. 그 밖의 ExtFUSE 변경 구간은 source, patch, raw
-commit, URL과 bundle로 분석·재구성할 수 있다.
+The complete upstream object database before the Linux baseline is outside
+the scope of this change-focused archive. The ExtFUSE change range can be
+analyzed and reconstructed from the sources, patches, raw commits, URLs, and
+bundles.
 
-## 최상위 저장소 상태
+The original 132-entry checksum manifest is now preserved as
+[`SHA256SUMS.archive`](SHA256SUMS.archive). The active
+[`SHA256SUMS`](SHA256SUMS) also covers the translated documents and Korean
+copies. This documentation update does not constitute a new run of the
+historical patch, bundle, or source-tree verification above.
 
-최상위 `ExtFUSE_Code/.git`은 유지되었지만 아직 commit이 없는 상태이며,
-README, `diffs/`와 다섯 source 디렉터리는 untracked다. `origin/main`도
-현재 `[gone]`으로 표시된다. 보존 자료를 영구히 남기려면 이 파일들을
-최상위 저장소의 첫 commit에 포함해야 한다.
+## Top-level repository state at verification time
 
-최상위 `origin` URL에 들어 있던 inline credential은 제거하고 공개 HTTPS
-URL `https://github.com/2daeeun/ExtFUSE_Code.git`로 정리했다.
+On the verification date, the top-level `ExtFUSE_Code/.git` was retained but
+had no commits. The README, `diffs/`, and all five source directories were
+untracked, and `origin/main` was shown as `[gone]`. At that time, these files
+needed to be included in the top-level repository's first commit to preserve
+them permanently.
+
+The inline credential formerly present in the top-level `origin` URL was
+removed, and the URL was normalized to the public HTTPS address
+`https://github.com/2daeeun/ExtFUSE_Code.git`.

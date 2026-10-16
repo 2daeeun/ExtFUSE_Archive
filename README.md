@@ -1,163 +1,190 @@
-# ExtFUSE ATC'19 코드 아카이브
+# ExtFUSE ATC'19 Code Archive
 
-이 저장소는 논문 **“Extension Framework for File Systems in User space”**
-(USENIX ATC '19)의 ExtFUSE 관련 코드를 한곳에서 비교·분석하기 위한
-아카이브다.
+**English** | [한국어](README.ko.md)
 
-- 논문: [USENIX 발표 페이지](https://www.usenix.org/conference/atc19/presentation/bijlani), [PDF](https://www.usenix.org/system/files/atc19-bijlani.pdf)
-- 원본 GitHub 조직: [github.com/extfuse](https://github.com/extfuse)
-- 분석 기준일: **2026-07-14**
+This repository is an archive for comparing and analyzing the ExtFUSE code
+associated with **“Extension Framework for File Systems in User space”**
+(USENIX ATC '19).
 
-이 문서의 Git 정보와 통계는 각 하위 저장소의 `.git`을 제거하기 전에
-직접 `git log`, `git merge-base`, `git diff`, 실제 파일 비교로 확인한
-결과다. 조사 당시 다섯 하위 작업 트리는 모두 clean 상태였고, 추적되지
-않은 파일이나 빌드 산출물도 없었다.
+- Paper: [USENIX presentation page](https://www.usenix.org/conference/atc19/presentation/bijlani), [PDF](https://www.usenix.org/system/files/atc19-bijlani.pdf)
+- Original GitHub organization: [github.com/extfuse](https://github.com/extfuse)
+- Analysis reference date: **2026-07-14**
 
-> **삭제 후 상태:** 2026-07-14에 다섯 하위 `.git`이 모두 제거되었고
-> 현재는 최상위 `ExtFUSE_Code/.git`만 남아 있다. 남은 다섯 source가 삭제
-> 전 Git tree와 정확히 일치하고 patch·bundle·checksum이 유효함을
-> [삭제 후 검증 기록](diffs/POST_DELETE_VERIFICATION.md)으로 다시 확인했다.
+The Git information and statistics in this document were verified before the
+nested repositories' `.git` directories were removed, using `git log`,
+`git merge-base`, `git diff`, and direct file comparisons. All five nested
+working trees were clean at the time, with no untracked files or build artifacts.
 
-> 여기서 `origin` 디렉터리는 “현재 최신 upstream”이 아니라
-> **ExtFUSE 브랜치가 갈라진 정확한 기준 스냅샷**을 뜻한다. 특히
-> libfuse 분석에서 이 구분이 중요하다.
+> **After deletion:** All five nested `.git` directories were removed on
+> 2026-07-14. Only the top-level `ExtFUSE_Code/.git` remains. The
+> [post-deletion verification record](diffs/POST_DELETE_VERIFICATION.md)
+> confirms that the five remaining source trees exactly matched their
+> pre-deletion Git trees and that the patches, bundles, and checksums were valid.
 
-## 디렉터리·주요 파일 구성
+> Here, an `origin` directory means **the exact baseline snapshot from which
+> the ExtFUSE branch diverged**, rather than the latest upstream version.
+> This distinction is particularly important for the libfuse comparison.
 
-| 경로 | 역할 |
+## Documentation languages
+
+English is the default language for this archive's documentation. The original
+Korean text is available in matching `*.ko.md` files. Use the language links at
+the top of each document to switch languages; links between Korean documents
+keep the selected language where a Korean version is available.
+
+| Document | English | Korean |
+|---|---|---|
+| Archive overview | [README](README.md) | [한국어](README.ko.md) |
+| Preserved change history | [README](diffs/README.md) | [한국어](diffs/README.ko.md) |
+| Post-deletion verification | [Verification record](diffs/POST_DELETE_VERIFICATION.md) | [한국어](diffs/POST_DELETE_VERIFICATION.ko.md) |
+| Git bundles and restoration | [README](diffs/bundles/README.md) | [한국어](diffs/bundles/README.ko.md) |
+| Git metadata inventory | [README](diffs/git-metadata/README.md) | [한국어](diffs/git-metadata/README.ko.md) |
+| Linux commits | [Commit history](diffs/linux/COMMITS.md) | [한국어](diffs/linux/COMMITS.ko.md) |
+| libfuse commits | [Commit history](diffs/libfuse/COMMITS.md) | [한국어](diffs/libfuse/COMMITS.ko.md) |
+| ExtFUSE library/BPF commits | [Commit history](diffs/extfuse/COMMITS.md) | [한국어](diffs/extfuse/COMMITS.ko.md) |
+
+## Directory and key file layout
+
+| Path | Purpose |
 |---|---|
-| [`pdf`](pdf/) | ExtFUSE 논문, 관련 발표자료, Figure 6·9 비교용 CSV |
-| [`pdf/fig9_requests.csv`](pdf/fig9_requests.csv) | Figure 9의 커널 컴파일·압축 해제 워크로드별 FUSE 요청 수 |
-| [`pdf/fig6_throughput.csv`](pdf/fig6_throughput.csv) | Figure 6의 Filebench 데이터 워크로드별 처리량(ops/sec) |
-| [`linux_origin/linux`](linux_origin/linux) | ExtFUSE 패치 전 Linux 기준 스냅샷 |
-| [`linux_ExtFUSE-1.0/linux`](linux_ExtFUSE-1.0/linux) | ExtFUSE 커널 fast path와 전용 BPF ABI가 추가된 Linux |
-| [`libfuse_origin/libfuse`](libfuse_origin/libfuse) | ExtFUSE용 libfuse가 분기한 기준 스냅샷 |
-| [`libfuse_ExtFUSE-1.0/libfuse`](libfuse_ExtFUSE-1.0/libfuse) | ExtFUSE capability와 BPF 프로그램 FD 전달 기능이 추가된 libfuse |
-| [`extfuse`](extfuse) | BPF 정책 프로그램과 이를 적재·관리하는 `libextfuse.so` 소스 |
-| [`diffs`](diffs) | 하위 `.git` 삭제 전에 생성한 세 코드 계열의 patch, commit URL·raw object, Git metadata와 복원 bundle |
+| [`pdf`](pdf/) | ExtFUSE paper, related presentations, and Figure 6/9 reference CSVs |
+| [`pdf/fig9_requests.csv`](pdf/fig9_requests.csv) | FUSE request counts for the kernel compilation and decompression workloads in Figure 9 |
+| [`pdf/fig6_throughput.csv`](pdf/fig6_throughput.csv) | Filebench data workload throughput in Figure 6, in ops/sec |
+| [`linux_origin/linux`](linux_origin/linux) | Linux baseline snapshot before the ExtFUSE patch |
+| [`linux_ExtFUSE-1.0/linux`](linux_ExtFUSE-1.0/linux) | Linux with the ExtFUSE kernel fast path and dedicated BPF ABI |
+| [`libfuse_origin/libfuse`](libfuse_origin/libfuse) | Baseline snapshot from which the ExtFUSE libfuse branch diverged |
+| [`libfuse_ExtFUSE-1.0/libfuse`](libfuse_ExtFUSE-1.0/libfuse) | libfuse with the ExtFUSE capability and BPF program FD passing |
+| [`extfuse`](extfuse) | BPF policy programs and the `libextfuse.so` source for loading and managing them |
+| [`diffs`](diffs) | Patches, commit URLs/raw objects, Git metadata, and restoration bundles for all three code lineages, captured before the nested `.git` directories were deleted |
 
-`linux_*`와 `libfuse_*`는 각각 같은 원격 저장소의 기준점/수정본 쌍이다.
-반면 `extfuse/`는 기존 프로젝트를 수정한 포크가 아니라 ExtFUSE를 위해
-새로 작성된 지원 코드이므로 대응하는 `extfuse_origin/`이 없다.
+The `linux_*` and `libfuse_*` directories are baseline/modified pairs from their
+respective remote repositories. In contrast, `extfuse/` contains support code
+written specifically for ExtFUSE, rather than a fork of an existing project, so
+there is no corresponding `extfuse_origin/` directory.
 
-## 논문 Figure 6·9 비교용 CSV
+## Paper Figure 6/9 reference CSVs
 
-두 CSV는 [보관된 논문](pdf/atc19-bijlani.pdf)의 Figure 6·9에 대응하는
-수치를 표로 정리한 비교용 자료다. 각 행은 하나의 조건에 대한 값이며,
-현재 포팅된 ExtFUSE의 새 실험 결과를 기록한 파일이 아니다.
+The two CSVs tabulate reference values corresponding to Figures 6 and 9 in the
+[archived paper](pdf/atc19-bijlani.pdf). Each row represents one condition;
+these files do not contain results from new experiments on the current ExtFUSE
+port.
 
-### `fig9_requests.csv`: Figure 9의 요청 수
+### `fig9_requests.csv`: Figure 9 request counts
 
-[`pdf/fig9_requests.csv`](pdf/fig9_requests.csv)는 Linux 4.18.0 커널의
-컴파일(`make tinyconfig; make -j4`)과 압축 해제(`tar xf`) 워크로드에서
-userspace StackFS daemon에 전달된 요청 수를 담는다. 헤더를 제외하면
-**42행**으로, 워크로드마다 7개 opcode와 3개 설정을 기록한다.
+[`pdf/fig9_requests.csv`](pdf/fig9_requests.csv) records the number of requests
+delivered to the userspace StackFS daemon during compilation
+(`make tinyconfig; make -j4`) and decompression (`tar xf`) of Linux 4.18.0.
+It has **42 data rows**, excluding the header: seven opcodes and three
+configurations for each workload.
 
-| 열 | 의미 |
+| Column | Meaning |
 |---|---|
-| `workload` | `compile`: 커널 컴파일, `decompress`: 커널 소스 압축 해제 |
-| `opcode` | 집계 대상 FUSE 요청 종류. 컴파일은 `GETATTR`, `GETXATTR`, `LOOKUP`, `OPEN`, `READ`, `SETATTR`, `WRITE`; 압축 해제는 `OPEN` 대신 `CREATE` |
-| `config` | 논문의 `Opt`, `MDOpt`, `AllOpt` 설정 |
-| `requests` | 해당 조건에서 daemon에 전달된 요청 수(건). 초당 처리량이나 실행 시간은 아님 |
+| `workload` | `compile`: kernel compilation; `decompress`: kernel source decompression |
+| `opcode` | FUSE request type counted. Compilation includes `GETATTR`, `GETXATTR`, `LOOKUP`, `OPEN`, `READ`, `SETATTR`, and `WRITE`; decompression uses `CREATE` instead of `OPEN` |
+| `config` | The paper's `Opt`, `MDOpt`, and `AllOpt` configurations |
+| `requests` | Number of requests delivered to the daemon under the given condition; neither throughput per second nor elapsed time |
 
-Figure 9에 대응하는 요청 수만 포함하므로 전체 syscall 수나 모든 FUSE
-opcode의 합계로 해석하지 않는다. 값이 `0`이어도 커널에서 처리한
-동일 종류의 작업까지 없었다는 뜻은 아니다. 실행 시간과 EXT4 결과는
-이 CSV에 포함되어 있지 않다.
+These are the request counts shown in Figure 9, rather than total syscall counts
+or sums over all FUSE opcodes. A value of `0` does not imply that the kernel
+performed no operations of the same type. Elapsed time and EXT4 results are not
+included in this CSV.
 
-### `fig6_throughput.csv`: Figure 6의 처리량
+### `fig6_throughput.csv`: Figure 6 throughput
 
-[`pdf/fig6_throughput.csv`](pdf/fig6_throughput.csv)는 xattr를 지원하는
-FUSE/ExtFUSE StackFS와 EXT4의 **Filebench 데이터 마이크로벤치마크
-처리량**을 담는다. 헤더를 제외하면 **128행**으로, 4개 워크로드 ×
-워크로드별 2개 thread/file 설정 × 4개 I/O 크기 × 4개 config다.
+[`pdf/fig6_throughput.csv`](pdf/fig6_throughput.csv) records **Filebench data
+microbenchmark throughput** for xattr-enabled FUSE/ExtFUSE StackFS and EXT4.
+It has **128 data rows**, excluding the header: four workloads × two thread/file
+settings per workload × four I/O sizes × four configurations.
 
-| 열 | 의미 |
+| Column | Meaning |
 |---|---|
-| `workload` | `RR`: random read, `RW`: random write, `SR`: sequential read, `SW`: sequential write |
-| `setting` | thread/file 수. 모든 워크로드의 `1th,1f`는 1 thread·1 file, RR/RW의 `32th,1f`는 32 threads·공유 1 file, SR/SW의 `32th,32f`는 32 threads·32 files |
-| `io_size` | 작업당 I/O 크기: `4KB`, `32KB`, `128KB`, `1MB` |
-| `config` | `EXT4`, `Opt`, `MDOpt`, `AllOpt` |
-| `ops_per_sec` | 초당 작업 수(ops/sec). 바이트 단위 대역폭이나 daemon 요청 수와 구분 |
+| `workload` | `RR`: random read; `RW`: random write; `SR`: sequential read; `SW`: sequential write |
+| `setting` | Thread/file counts. `1th,1f` means one thread and one file for every workload; `32th,1f` means 32 threads sharing one file for RR/RW; `32th,32f` means 32 threads and 32 files for SR/SW |
+| `io_size` | I/O size per operation: `4KB`, `32KB`, `128KB`, or `1MB` |
+| `config` | `EXT4`, `Opt`, `MDOpt`, or `AllOpt` |
+| `ops_per_sec` | Operations per second (ops/sec), distinct from byte bandwidth or daemon request counts |
 
-`setting` 값에는 쉼표가 들어 있어 CSV에서 `"1th,1f"`처럼 큰따옴표로
-묶여 있다. 파일을 읽을 때는 단순한 쉼표 분할 대신 CSV 파서를 사용한다.
+The `setting` values contain commas and are quoted in the CSV, for example
+`"1th,1f"`. Use a CSV parser rather than splitting lines on commas.
 
-### 공통 config와 데이터 범위
+### Shared configurations and data scope
 
-아래 설정의 의미는 논문 Table 5를 따른다.
+The configuration definitions below follow Table 5 of the paper.
 
-| config | 의미 |
+| Config | Meaning |
 |---|---|
-| `EXT4` | 네이티브 EXT4 비교 기준. `fig6_throughput.csv`에만 포함 |
-| `Opt` | FUSE StackFS의 기존 최적화: 128KB writes, splice, writeback cache, multithreading |
-| `MDOpt` | `Opt` + ExtFUSE의 lookup·attribute·xattr 응답 캐시 |
-| `AllOpt` | `MDOpt` + read/write 요청을 하위(host) 파일시스템으로 전달하는 passthrough |
+| `EXT4` | Native EXT4 baseline; included only in `fig6_throughput.csv` |
+| `Opt` | Existing FUSE StackFS optimizations: 128KB writes, splice, writeback cache, and multithreading |
+| `MDOpt` | `Opt` plus ExtFUSE lookup, attribute, and xattr response caches |
+| `AllOpt` | `MDOpt` plus passthrough of read/write requests to the underlying host filesystem |
 
-두 CSV에는 원시 실행 로그, 반복 측정, 오차, 수치 추출 방법이 기록되어
-있지 않다. 개별 값의 추출 정밀도는 CSV만으로 확인할 수 없으므로,
-논문 비교용 참고값으로 사용하고 새로 실행한 실험의 측정값과 구분한다.
+The CSVs do not record raw run logs, repeated measurements, uncertainty, or the
+numeric extraction method. The precision of individual extracted values cannot
+be established from the CSVs alone. Use them as paper-comparison reference values
+and distinguish them from measurements obtained in new experiments.
 
-## 보존된 Git 기준점
+## Preserved Git baselines
 
-| 디렉터리 | 삭제 전 checkout | 삭제 전 HEAD | 설명 |
+| Directory | Checkout before deletion | HEAD before deletion | Description |
 |---|---|---|---|
 | `linux_origin/linux` | `master` | [`1d039859330b`](https://github.com/extfuse/linux/commit/1d039859330b874d48080885eb31f4f129c246f1) | 2019-07-14, `v5.2-8274-g1d039859330b` |
 | `linux_ExtFUSE-1.0/linux` | `ExtFUSE-1.0` | [`d95ca8642fce`](https://github.com/extfuse/linux/commit/d95ca8642fce0214cf2ebaaa792ba538d4d8381d) | 2020-09-08, `v5.2-8283-gd95ca8642fce` |
 | `libfuse_origin/libfuse` | detached HEAD | [`386b1b6e3d0f`](https://github.com/extfuse/libfuse/commit/386b1b6e3d0fcf7e2dfd5473e867284410dfa624) | 2015-09-29, `fuse_2_9_3-105-g386b1b6` |
 | `libfuse_ExtFUSE-1.0/libfuse` | `ExtFUSE-1.0` | [`5b381d81f0d2`](https://github.com/extfuse/libfuse/commit/5b381d81f0d2a4a37ca4c73a3c8e5e778138b32d) | 2020-07-25, `fuse_2_9_3-108-g5b381d8` |
-| `extfuse` | `master` | [`d2acdb1c8e45`](https://github.com/extfuse/extfuse/commit/d2acdb1c8e4531562fc77fe566896e771d03026e) | 2023-05-02, 현재 아카이브의 standalone 코드 |
+| `extfuse` | `master` | [`d2acdb1c8e45`](https://github.com/extfuse/extfuse/commit/d2acdb1c8e4531562fc77fe566896e771d03026e) | 2023-05-02, standalone code in this archive |
 
-원격 저장소는 각각 다음과 같다.
+The original remotes are:
 
 - Linux: <https://github.com/extfuse/linux>
 - libfuse: <https://github.com/extfuse/libfuse>
 - ExtFUSE library/BPF: <https://github.com/extfuse/extfuse>
 
-## 보존된 Git diff와 commit 원본 URL
+## Preserved Git diffs and original commit URLs
 
-하위 `.git`을 삭제한 뒤에도 변경 시작점과 이후 이력을 모두 추적할 수
-있도록 [`diffs/`](diffs)에 source patch, commit metadata와 원본 URL을
-보존했다.
+[`diffs/`](diffs) preserves source patches, commit metadata, and original URLs
+so that the starting points and subsequent histories remain traceable after
+the nested `.git` directories have been deleted.
 
-| 대상 | 변경 시작점 | 모든 commit 원본 URL | 누적 patch | 커밋별/파일별 기록 |
+| Component | Starting point | All original commit URLs | Cumulative patch | Per-commit/per-file records |
 |---|---|---|---|---|
-| Linux | [원본 `1d039859330b`](https://github.com/extfuse/linux/commit/1d039859330b874d48080885eb31f4f129c246f1) · [당시 코드](https://github.com/extfuse/linux/tree/1d039859330b874d48080885eb31f4f129c246f1) | [10개 행: 원본+변경 9개](diffs/linux/COMMITS.md) | [`changes.patch`](diffs/linux/changes.patch) | [mailbox](diffs/linux/series.mbox), [파일→commit URL](diffs/linux/files.tsv), [그래프](diffs/linux/history.graph.txt) |
-| libfuse | [원본 `386b1b6e3d0f`](https://github.com/extfuse/libfuse/commit/386b1b6e3d0fcf7e2dfd5473e867284410dfa624) · [당시 코드](https://github.com/extfuse/libfuse/tree/386b1b6e3d0fcf7e2dfd5473e867284410dfa624) | [4개 행: 원본+변경 3개](diffs/libfuse/COMMITS.md) | [`changes.patch`](diffs/libfuse/changes.patch) | [mailbox](diffs/libfuse/series.mbox), [파일→commit URL](diffs/libfuse/files.tsv), [그래프](diffs/libfuse/history.graph.txt) |
-| extfuse | 별도 vanilla 원본 없음 · [최초 `5462699b5414`](https://github.com/extfuse/extfuse/commit/5462699b5414a739bc6c3221157827ac42250334) · [당시 코드](https://github.com/extfuse/extfuse/tree/5462699b5414a739bc6c3221157827ac42250334) | [전체 29개](diffs/extfuse/COMMITS.md) | [현재 tree patch](diffs/extfuse/changes.patch) | [mailbox](diffs/extfuse/series.mbox), [파일→commit URL](diffs/extfuse/files.tsv), [그래프](diffs/extfuse/history.graph.txt) |
+| Linux | [Baseline `1d039859330b`](https://github.com/extfuse/linux/commit/1d039859330b874d48080885eb31f4f129c246f1) · [code snapshot](https://github.com/extfuse/linux/tree/1d039859330b874d48080885eb31f4f129c246f1) | [10 rows: baseline + 9 changes](diffs/linux/COMMITS.md) | [`changes.patch`](diffs/linux/changes.patch) | [mailbox](diffs/linux/series.mbox), [file → commit URL](diffs/linux/files.tsv), [graph](diffs/linux/history.graph.txt) |
+| libfuse | [Baseline `386b1b6e3d0f`](https://github.com/extfuse/libfuse/commit/386b1b6e3d0fcf7e2dfd5473e867284410dfa624) · [code snapshot](https://github.com/extfuse/libfuse/tree/386b1b6e3d0fcf7e2dfd5473e867284410dfa624) | [4 rows: baseline + 3 changes](diffs/libfuse/COMMITS.md) | [`changes.patch`](diffs/libfuse/changes.patch) | [mailbox](diffs/libfuse/series.mbox), [file → commit URL](diffs/libfuse/files.tsv), [graph](diffs/libfuse/history.graph.txt) |
+| extfuse | No separate vanilla baseline · [first commit `5462699b5414`](https://github.com/extfuse/extfuse/commit/5462699b5414a739bc6c3221157827ac42250334) · [code snapshot](https://github.com/extfuse/extfuse/tree/5462699b5414a739bc6c3221157827ac42250334) | [All 29 commits](diffs/extfuse/COMMITS.md) | [Current tree patch](diffs/extfuse/changes.patch) | [mailbox](diffs/extfuse/series.mbox), [file → commit URL](diffs/extfuse/files.tsv), [graph](diffs/extfuse/history.graph.txt) |
 
-각 `commits.tsv`에는 commit/tree/parent SHA, author/committer, GPG signature
-존재 여부뿐 아니라 다음 URL을 기계 판독 가능한 열로 기록했다.
+Each `commits.tsv` includes commit/tree/parent SHAs, author and committer
+information, and GPG signature presence, along with machine-readable columns
+for these URLs:
 
-- 원본 GitHub commit와 해당 commit의 전체 source snapshot
-- raw tree API
-- 각 parent commit 및 parent→commit compare
-- 변경 시작점→해당 commit compare
+- Original GitHub commit and its complete source snapshot
+- Raw tree API
+- Each parent commit and parent-to-commit comparison
+- Starting-point-to-commit comparison
 
-[Linux](diffs/linux/raw-commits), [libfuse](diffs/libfuse/raw-commits),
-[extfuse](diffs/extfuse/raw-commits)의 raw commit 디렉터리에는 사람이 읽는
-본문과 byte-for-byte 정확한 Base64 object가 있다. Linux 10개, libfuse
-4개, extfuse 29개, 총 43개 object를 decode했을 때 원래 commit SHA와
-모두 일치한다.
+The raw commit directories for [Linux](diffs/linux/raw-commits),
+[libfuse](diffs/libfuse/raw-commits), and [extfuse](diffs/extfuse/raw-commits)
+contain readable commit text and byte-for-byte exact Base64 objects. Decoding
+all 43 objects—10 for Linux, four for libfuse, and 29 for extfuse—reproduced
+their original commit SHAs.
 
 ```bash
 base64 --decode diffs/linux/raw-commits/<SHA>.commit.b64 |
   git hash-object -t commit --stdin
 ```
 
-추가로 다음을 보존했다.
+The archive also preserves:
 
-- [다섯 checkout의 refs/tag/reflog/config/object inventory](diffs/git-metadata/README.md)
-- [extfuse/libfuse 완전 bundle과 Linux 변경 전용 bundle](diffs/bundles/README.md)
-- [모든 보존 파일의 SHA-256](diffs/SHA256SUMS)
-- extfuse merge의 [양쪽 parent diff와 combined diff](diffs/extfuse/merges)
+- [Refs/tags/reflogs/config/object inventories for all five checkouts](diffs/git-metadata/README.md)
+- [Complete extfuse/libfuse bundles and the Linux changes-only bundle](diffs/bundles/README.md)
+- [SHA-256 checksums of preserved files](diffs/SHA256SUMS)
+- [Both parent diffs and the combined diff for the extfuse merge](diffs/extfuse/merges)
 
-삭제 전 Linux 전체 upstream object database는 clone마다 약 2.9 GB였고
-두 clone의 pack도 동일했다. 변경 이후 기록에 집중하기 위해 전체 이력을
-세 번째로 복제하지 않고, 원본/수정 source tree 두 벌과 변경 구간의
-URL·raw commit·patch 및 9개 commit/tree/blob을 담은 prerequisite bundle을
-보존했다. 상세 범위, 생성·복원·검증 방법은
-[`diffs/README.md`](diffs/README.md)에 있다.
+Before deletion, each Linux clone's complete upstream object database occupied
+about 2.9 GB, and the two clones had identical packs. To focus preservation on
+the ExtFUSE changes, the archive avoids a third copy of the complete history.
+It retains both baseline and modified source trees, URLs/raw commits/patches
+for the changed range, and a prerequisite bundle containing the nine commits
+and their trees/blobs. See [`diffs/README.md`](diffs/README.md) for the detailed
+scope and generation, restoration, and verification procedures.
 
 ```bash
 less diffs/linux/COMMITS.md
@@ -166,41 +193,42 @@ git apply --numstat diffs/libfuse/changes.patch
 sha256sum -c diffs/SHA256SUMS
 ```
 
-Linux와 libfuse 누적 patch는 원본에 정방향, 수정본에 역방향
-`git apply --check`를 통과했다. 커밋별 patch를 base에 적용한 최종
-tree도 원래 ExtFUSE HEAD와 일치하며, extfuse 누적 patch 역시 empty
-tree에서 정확한 현재 tree를 재구성한다.
+The Linux and libfuse cumulative patches passed `git apply --check` in both
+directions: forward against the baseline and reverse against the modified tree.
+Applying their per-commit patches to the base also reproduced the original
+ExtFUSE HEAD trees. The extfuse cumulative patch likewise reconstructs its exact
+archived tree from an empty tree.
 
-## 전체 연결 구조
+## How the components connect
 
-세 코드 계열은 다음처럼 함께 동작한다.
+The three code lineages work together as follows.
 
 ```text
 FUSE filesystem daemon
-  ├─ libextfuse.so가 bpf/extfuse.o를 적재해 BPF program FD 획득
-  └─ 수정 libfuse의 init callback에서 capability와 FD를 전달
+  ├─ libextfuse.so loads bpf/extfuse.o and obtains a BPF program FD
+  └─ The modified libfuse init callback passes the capability and FD
                          │ FUSE_INIT reply
                          ▼
-수정 Linux FUSE driver가 BPF_PROG_TYPE_EXTFUSE 프로그램을 연결
+Modified Linux FUSE driver attaches a BPF_PROG_TYPE_EXTFUSE program
                          │
-일반 FUSE 요청 ──> main BPF ──opcode tail call──> 개별 handler
+Normal FUSE request ──> main BPF ──opcode tail call──> per-opcode handler
                          │
             ┌────────────┴────────────┐
-            │ -ENOSYS                 │ 그 밖의 반환값
+            │ -ENOSYS                 │ Other return values
             ▼                         ▼
-   기존 userspace upcall       커널에서 응답/오류 처리
+   Existing userspace upcall    Kernel handles response/error
 ```
 
-핵심은 libfuse가 BPF 로직을 실행하는 것이 아니라, 파일시스템 daemon이
-준비한 **BPF 프로그램 FD를 FUSE 초기 협상에서 커널로 전달**한다는 점이다.
-실제 요청 처리와 helper/verifier는 수정 Linux에 있고, 캐시 정책은
-`extfuse/bpf/extfuse.c`에 있다.
+The key role of libfuse is to **pass the daemon's BPF program FD to the kernel
+during FUSE initialization negotiation**. The modified Linux kernel executes
+the request logic and provides the helpers and verifier; the cache policy lives
+in `extfuse/bpf/extfuse.c`.
 
-## Linux: 원본과 ExtFUSE 비교
+## Linux: baseline versus ExtFUSE
 
-### 기준 관계와 통계
+### Baseline relationship and statistics
 
-원본 HEAD가 ExtFUSE 브랜치의 정확한 merge-base다.
+The baseline HEAD is the exact merge-base of the ExtFUSE branch.
 
 ```text
 base: 1d039859330b874d48080885eb31f4f129c246f1
@@ -210,13 +238,13 @@ reachable commits: 0 original-only / 9 ExtFUSE-only
 diff: 16 files changed, 508 insertions(+), 4 deletions(-)
 ```
 
-[GitHub에서 전체 Linux 변경 보기](https://github.com/extfuse/linux/compare/1d039859330b874d48080885eb31f4f129c246f1...d95ca8642fce0214cf2ebaaa792ba538d4d8381d)
+[View the complete Linux changes on GitHub](https://github.com/extfuse/linux/compare/1d039859330b874d48080885eb31f4f129c246f1...d95ca8642fce0214cf2ebaaa792ba538d4d8381d)
 
-변경 직전 기준 commit과 이후 9개 commit의 원본 URL·snapshot·parent는
-[`diffs/linux/COMMITS.md`](diffs/linux/COMMITS.md)에 모두 연결해 두었다.
+[`diffs/linux/COMMITS.md`](diffs/linux/COMMITS.md) links the original URLs,
+snapshots, and parents for the baseline commit and all nine subsequent commits.
 
-추가된 9개 커밋의 구조는 다음과 같다. PR merge 때문에 first-parent
-기준으로는 3개지만, 도달 가능한 고유 커밋은 9개다.
+The nine added commits have the following topology. PR merges leave only three
+commits on the first-parent path, but there are nine distinct reachable commits.
 
 ```text
 * d95ca8642fce Add extfuse prog type and helpers to tools/bpf
@@ -233,42 +261,43 @@ diff: 16 files changed, 508 insertions(+), 4 deletions(-)
 * 1d039859330b original master HEAD
 ```
 
-### 변경 파일과 역할
+### Changed files and their roles
 
-| 영역 | 파일 | 변경 의미 |
+| Area | Files | Purpose of changes |
 |---|---|---|
-| 핵심 구현 | [`fs/fuse/extfuse.c`](linux_ExtFUSE-1.0/linux/fs/fuse/extfuse.c), [`fs/fuse/extfuse_i.h`](linux_ExtFUSE-1.0/linux/fs/fuse/extfuse_i.h) | BPF 프로그램 load/run, 요청 context, 전용 helper와 verifier/program ops |
-| FUSE 요청 경로 | [`fs/fuse/dev.c`](linux_ExtFUSE-1.0/linux/fs/fuse/dev.c), [`fs/fuse/inode.c`](linux_ExtFUSE-1.0/linux/fs/fuse/inode.c), [`fs/fuse/fuse_i.h`](linux_ExtFUSE-1.0/linux/fs/fuse/fuse_i.h) | userspace 전송 전 BPF 실행, INIT에서 FD load, connection private data 보관 |
-| FUSE UAPI | [`include/uapi/linux/fuse.h`](linux_ExtFUSE-1.0/linux/include/uapi/linux/fuse.h), [`include/uapi/linux/extfuse.h`](linux_ExtFUSE-1.0/linux/include/uapi/linux/extfuse.h) | bit 26 capability, `extfuse_prog_fd`, BPF가 읽고 쓸 요청 인자 종류 |
-| BPF ABI | [`include/uapi/linux/bpf.h`](linux_ExtFUSE-1.0/linux/include/uapi/linux/bpf.h), [`include/linux/bpf_types.h`](linux_ExtFUSE-1.0/linux/include/linux/bpf_types.h), [`tools/include/uapi/linux/bpf.h`](linux_ExtFUSE-1.0/linux/tools/include/uapi/linux/bpf.h), [`tools/testing/selftests/bpf/bpf_helpers.h`](linux_ExtFUSE-1.0/linux/tools/testing/selftests/bpf/bpf_helpers.h) | `BPF_PROG_TYPE_EXTFUSE`, read/write helper ID, kernel/tools header 동기화 |
-| BPF loader | [`samples/bpf/bpf_load.c`](linux_ExtFUSE-1.0/linux/samples/bpf/bpf_load.c) | ELF section `extfuse`와 `extfuse/<opcode>` 인식 및 program-array 구성 |
-| 빌드·문서 | [`fs/fuse/Kconfig`](linux_ExtFUSE-1.0/linux/fs/fuse/Kconfig), [`fs/fuse/Makefile`](linux_ExtFUSE-1.0/linux/fs/fuse/Makefile), [`Documentation/filesystems/extfuse.txt`](linux_ExtFUSE-1.0/linux/Documentation/filesystems/extfuse.txt), [`MAINTAINERS`](linux_ExtFUSE-1.0/linux/MAINTAINERS) | `CONFIG_EXTFUSE`와 빌드 항목, 짧은 문서/관리자 정보 |
+| Core implementation | [`fs/fuse/extfuse.c`](linux_ExtFUSE-1.0/linux/fs/fuse/extfuse.c), [`fs/fuse/extfuse_i.h`](linux_ExtFUSE-1.0/linux/fs/fuse/extfuse_i.h) | BPF program loading/execution, request context, dedicated helpers, and verifier/program operations |
+| FUSE request path | [`fs/fuse/dev.c`](linux_ExtFUSE-1.0/linux/fs/fuse/dev.c), [`fs/fuse/inode.c`](linux_ExtFUSE-1.0/linux/fs/fuse/inode.c), [`fs/fuse/fuse_i.h`](linux_ExtFUSE-1.0/linux/fs/fuse/fuse_i.h) | Run BPF before userspace delivery, load the FD during INIT, and retain connection private data |
+| FUSE UAPI | [`include/uapi/linux/fuse.h`](linux_ExtFUSE-1.0/linux/include/uapi/linux/fuse.h), [`include/uapi/linux/extfuse.h`](linux_ExtFUSE-1.0/linux/include/uapi/linux/extfuse.h) | Bit 26 capability, `extfuse_prog_fd`, and request argument types accessible to BPF |
+| BPF ABI | [`include/uapi/linux/bpf.h`](linux_ExtFUSE-1.0/linux/include/uapi/linux/bpf.h), [`include/linux/bpf_types.h`](linux_ExtFUSE-1.0/linux/include/linux/bpf_types.h), [`tools/include/uapi/linux/bpf.h`](linux_ExtFUSE-1.0/linux/tools/include/uapi/linux/bpf.h), [`tools/testing/selftests/bpf/bpf_helpers.h`](linux_ExtFUSE-1.0/linux/tools/testing/selftests/bpf/bpf_helpers.h) | `BPF_PROG_TYPE_EXTFUSE`, read/write helper IDs, and synchronized kernel/tools headers |
+| BPF loader | [`samples/bpf/bpf_load.c`](linux_ExtFUSE-1.0/linux/samples/bpf/bpf_load.c) | Recognize ELF sections `extfuse` and `extfuse/<opcode>` and populate the program array |
+| Build/documentation | [`fs/fuse/Kconfig`](linux_ExtFUSE-1.0/linux/fs/fuse/Kconfig), [`fs/fuse/Makefile`](linux_ExtFUSE-1.0/linux/fs/fuse/Makefile), [`Documentation/filesystems/extfuse.txt`](linux_ExtFUSE-1.0/linux/Documentation/filesystems/extfuse.txt), [`MAINTAINERS`](linux_ExtFUSE-1.0/linux/MAINTAINERS) | `CONFIG_EXTFUSE`, build entries, and brief documentation/maintainer information |
 
-파일 상태는 **신규 4개, 수정 12개**이며 삭제, rename, binary 변경은 없다.
+There are **four added files and 12 modified files**, with no deletions, renames,
+or binary changes.
 
-### 커널 동작의 핵심
+### Core kernel behavior
 
-1. `CONFIG_EXTFUSE`는 `FUSE_FS && BPF_SYSCALL`에 의존한다.
-2. 커널이 `FUSE_INIT`에서 `FUSE_FS_EXTFUSE`(bit 26)를 광고한다.
-3. daemon이 같은 flag와 `extfuse_prog_fd`를 회신하면
-   `extfuse_load_prog()`가 FD의 타입을 `BPF_PROG_TYPE_EXTFUSE`로 확인한다.
-4. `fuse_request_send()`는 정상 userspace queue 전송 전에
-   `extfuse_request_send()`를 실행한다.
-5. BPF가 `-ENOSYS`를 반환하면 기존 FUSE daemon으로 fallback한다.
-   그 외에는 userspace 전송을 건너뛴다.
-6. 전용 GPL-only helper `bpf_extfuse_read_args()`와
-   `bpf_extfuse_write_args()`가 opcode, nodeid, 최대 3개 입력 인자와
-   최대 2개 출력 인자의 안전한 복사를 제공한다.
+1. `CONFIG_EXTFUSE` depends on `FUSE_FS && BPF_SYSCALL`.
+2. The kernel advertises `FUSE_FS_EXTFUSE` (bit 26) during `FUSE_INIT`.
+3. If the daemon replies with the same flag and `extfuse_prog_fd`,
+   `extfuse_load_prog()` checks that the FD has type `BPF_PROG_TYPE_EXTFUSE`.
+4. `fuse_request_send()` calls `extfuse_request_send()` before normal userspace
+   queue delivery.
+5. If BPF returns `-ENOSYS`, the request falls back to the existing FUSE daemon.
+   Other return values skip userspace delivery.
+6. The dedicated GPL-only helpers `bpf_extfuse_read_args()` and
+   `bpf_extfuse_write_args()` provide safe copying of the opcode, nodeid, up to
+   three input arguments, and up to two output arguments.
 
-`struct fuse_init_out`의 기존 reserved 영역 일부를 FD 필드로 재사용하므로
-wire 구조체 전체 크기는 유지된다.
+The FD field reuses part of the reserved area in `struct fuse_init_out`, keeping
+the total wire structure size unchanged.
 
-## libfuse: 원본과 ExtFUSE 비교
+## libfuse: baseline versus ExtFUSE
 
-### 기준 관계와 통계
+### Baseline relationship and statistics
 
-`libfuse_origin`의 detached HEAD가 ExtFUSE 첫 커밋의 직접 부모이자 정확한
-merge-base다.
+The detached HEAD in `libfuse_origin` is both the direct parent of the first
+ExtFUSE commit and the exact merge-base.
 
 ```text
 386b1b6 original snapshot
@@ -278,161 +307,163 @@ merge-base다.
 correct diff: 3 files changed, 27 insertions(+), 2 deletions(-)
 ```
 
-[GitHub에서 전체 libfuse 변경 보기](https://github.com/extfuse/libfuse/compare/386b1b6e3d0fcf7e2dfd5473e867284410dfa624...5b381d81f0d2a4a37ca4c73a3c8e5e778138b32d)
+[View the complete libfuse changes on GitHub](https://github.com/extfuse/libfuse/compare/386b1b6e3d0fcf7e2dfd5473e867284410dfa624...5b381d81f0d2a4a37ca4c73a3c8e5e778138b32d)
 
-변경 직전 기준 commit과 이후 3개 commit의 원본 URL·snapshot·parent는
-[`diffs/libfuse/COMMITS.md`](diffs/libfuse/COMMITS.md)에 모두 연결해 두었다.
+[`diffs/libfuse/COMMITS.md`](diffs/libfuse/COMMITS.md) links the original URLs,
+snapshots, and parents for the baseline commit and all three subsequent commits.
 
-| 커밋 | 날짜 | 의미 |
+| Commit | Date | Purpose |
 |---|---|---|
-| [`7c88efb`](https://github.com/extfuse/libfuse/commit/7c88efb9d92d64289795e43b2948977c07ccda7f) | 2019-02-28 | capability 감지, FD 필드와 INIT 협상 최초 추가 |
-| [`f945fbc`](https://github.com/extfuse/libfuse/commit/f945fbc0b6ba9c9291229f6e209d82168908cc94) | 2020-07-11 | capability bit를 충돌하던 bit 21에서 최종 bit 26으로 수정 |
-| [`5b381d8`](https://github.com/extfuse/libfuse/commit/5b381d81f0d2a4a37ca4c73a3c8e5e778138b32d) | 2020-07-25 | `fuse_init_out`의 padding/FD 위치를 당시 수정 커널 ABI와 동기화 |
+| [`7c88efb`](https://github.com/extfuse/libfuse/commit/7c88efb9d92d64289795e43b2948977c07ccda7f) | 2019-02-28 | Initially add capability detection, the FD field, and INIT negotiation |
+| [`f945fbc`](https://github.com/extfuse/libfuse/commit/f945fbc0b6ba9c9291229f6e209d82168908cc94) | 2020-07-11 | Move the capability from conflicting bit 21 to its final bit 26 |
+| [`5b381d8`](https://github.com/extfuse/libfuse/commit/5b381d81f0d2a4a37ca4c73a3c8e5e778138b32d) | 2020-07-25 | Synchronize the padding/FD position in `fuse_init_out` with the modified kernel ABI at that time |
 
-### 변경 파일
+### Changed files
 
-| 파일 | 통계 | 변경 의미 |
+| File | Statistics | Purpose of changes |
 |---|---:|---|
-| [`include/fuse_common.h`](libfuse_ExtFUSE-1.0/libfuse/include/fuse_common.h) | +6/-1 | `FUSE_CAP_EXTFUSE`, `fuse_conn_info.extfuse_prog_fd` 추가 |
-| [`include/fuse_kernel.h`](libfuse_ExtFUSE-1.0/libfuse/include/fuse_kernel.h) | +5/-1 | `FUSE_FS_EXTFUSE`, INIT reply의 padding/FD 필드 추가 |
-| [`lib/fuse_lowlevel.c`](libfuse_ExtFUSE-1.0/libfuse/lib/fuse_lowlevel.c) | +16/-0 | `do_init()`에서 capability 감지 및 flag/FD 회신 |
+| [`include/fuse_common.h`](libfuse_ExtFUSE-1.0/libfuse/include/fuse_common.h) | +6/-1 | Add `FUSE_CAP_EXTFUSE` and `fuse_conn_info.extfuse_prog_fd` |
+| [`include/fuse_kernel.h`](libfuse_ExtFUSE-1.0/libfuse/include/fuse_kernel.h) | +5/-1 | Add `FUSE_FS_EXTFUSE` and INIT reply padding/FD fields |
+| [`lib/fuse_lowlevel.c`](libfuse_ExtFUSE-1.0/libfuse/lib/fuse_lowlevel.c) | +16/-0 | Detect the capability and return the flag/FD in `do_init()` |
 
-공개 구조체와 wire 구조체는 reserved/unused 슬롯을 줄여 전체 크기를
-유지한다. libfuse는 지원 여부를 `conn.capable`에 표시할 뿐 ExtFUSE를
-자동으로 켜지 않는다. 파일시스템의 `init` callback이 다음 두 값을
-명시적으로 설정해야 한다.
+The public and wire structures retain their sizes by reducing reserved/unused
+slots. libfuse exposes support through `conn.capable`; the filesystem's `init`
+callback must explicitly set both values below to enable ExtFUSE.
 
 ```c
 conn->want |= FUSE_CAP_EXTFUSE;
 conn->extfuse_prog_fd = bpf_program_fd;
 ```
 
-### 잘못된 비교를 피하는 방법
+### Avoiding an incorrect comparison
 
-`git diff origin/master ExtFUSE-1.0`은 사용하지 않는 것이 좋다. 현재
-`origin/master`는 기준점에서 521개 커밋 진행한 별도 upstream 계열이므로,
-이 명령은 ExtFUSE 변경 3개와 대규모 upstream 역차이를 섞는다. 실제로
-이 잘못된 기준은 111개 파일, +9,350/-11,258의 diff를 만든다.
+Avoid `git diff origin/master ExtFUSE-1.0`. At the analysis reference date,
+`origin/master` was a separate upstream lineage 521 commits beyond the baseline.
+That command mixes the three ExtFUSE changes with a large reverse upstream diff:
+111 files, +9,350/-11,258.
 
-정확한 기준은 항상 다음 두 SHA다.
+Always use these two SHAs for the exact comparison:
 
 ```text
 386b1b6e3d0fcf7e2dfd5473e867284410dfa624
 5b381d81f0d2a4a37ca4c73a3c8e5e778138b32d
 ```
 
-## `extfuse/`: BPF 정책과 지원 라이브러리
+## `extfuse/`: BPF policies and support library
 
-이 디렉터리는 29개 커밋으로 구성되며 태그는 없다. 최초 커밋은
-[`5462699`](https://github.com/extfuse/extfuse/commit/5462699b5414a739bc6c3221157827ac42250334)(2018-06-10),
-구현 전체가 들어온 커밋은
-[`179c03c`](https://github.com/extfuse/extfuse/commit/179c03cebbadb209d7e6b75fcc832751d762811d)(2020-01-19),
-마지막 기능 변경은
-[`2fbf376`](https://github.com/extfuse/extfuse/commit/2fbf37608be28269f2597cb148f1d8a03d78d834)(2020-09-08)이다.
-이후 현재 HEAD까지는 기능 변경 없이 README만 갱신되었다. 최초부터
-현재까지 29개 commit의 모든 원본 URL은
-[`diffs/extfuse/COMMITS.md`](diffs/extfuse/COMMITS.md)에 있다.
+This directory has 29 commits and no tags. Its first commit is
+[`5462699`](https://github.com/extfuse/extfuse/commit/5462699b5414a739bc6c3221157827ac42250334)
+(2018-06-10); the complete implementation arrived in
+[`179c03c`](https://github.com/extfuse/extfuse/commit/179c03cebbadb209d7e6b75fcc832751d762811d)
+(2020-01-19); the last functional change is
+[`2fbf376`](https://github.com/extfuse/extfuse/commit/2fbf37608be28269f2597cb148f1d8a03d78d834)
+(2020-09-08). Subsequent commits through the archived HEAD only update the
+README. [`diffs/extfuse/COMMITS.md`](diffs/extfuse/COMMITS.md) lists the original
+URLs for all 29 commits.
 
-주요 이력은 다음과 같다.
+Key milestones are:
 
-| 커밋 | 의미 |
+| Commit | Purpose |
 |---|---|
-| [`179c03c`](https://github.com/extfuse/extfuse/commit/179c03cebbadb209d7e6b75fcc832751d762811d) | BPF 프로그램과 userspace library 구현 추가 |
-| [`5c8601d`](https://github.com/extfuse/extfuse/commit/5c8601d74527bc42d2a6b5c31443eda00b9c9fad) | 코드 정리 및 passthrough 기본 비활성화 |
-| [`85db013`](https://github.com/extfuse/extfuse/commit/85db013f1c162d02e3005c9a7553c4894f18ec12)~[`022fb65`](https://github.com/extfuse/extfuse/commit/022fb65e7bf0d3d0b5a20378793215ec58c29167) | kbuild 경로, helper, include, libbpf source 관련 빌드 수정 |
-| [`632336a`](https://github.com/extfuse/extfuse/commit/632336a462b0763adce80f3738886f1739be47c4) | library 결과물 이름을 `libextfuse.so`로 변경 |
-| [`541f931`](https://github.com/extfuse/extfuse/commit/541f9318cd5843423ee838240b9bc1378a378062) | BPF ELF section 이름을 `fuse*`에서 `extfuse*`로 변경 |
-| [`2fbf376`](https://github.com/extfuse/extfuse/commit/2fbf37608be28269f2597cb148f1d8a03d78d834) | main handler가 실제 양수 FUSE opcode만 dispatch하도록 수정 |
-| [`d2acdb1`](https://github.com/extfuse/extfuse/commit/d2acdb1c8e4531562fc77fe566896e771d03026e) | 현재 HEAD; README 연락 안내만 추가 |
+| [`179c03c`](https://github.com/extfuse/extfuse/commit/179c03cebbadb209d7e6b75fcc832751d762811d) | Add BPF programs and the userspace library implementation |
+| [`5c8601d`](https://github.com/extfuse/extfuse/commit/5c8601d74527bc42d2a6b5c31443eda00b9c9fad) | Clean up the code and disable passthrough by default |
+| [`85db013`](https://github.com/extfuse/extfuse/commit/85db013f1c162d02e3005c9a7553c4894f18ec12)–[`022fb65`](https://github.com/extfuse/extfuse/commit/022fb65e7bf0d3d0b5a20378793215ec58c29167) | Fix kbuild paths, helpers, includes, and libbpf source handling |
+| [`632336a`](https://github.com/extfuse/extfuse/commit/632336a462b0763adce80f3738886f1739be47c4) | Rename the library output to `libextfuse.so` |
+| [`541f931`](https://github.com/extfuse/extfuse/commit/541f9318cd5843423ee838240b9bc1378a378062) | Rename BPF ELF sections from `fuse*` to `extfuse*` |
+| [`2fbf376`](https://github.com/extfuse/extfuse/commit/2fbf37608be28269f2597cb148f1d8a03d78d834) | Dispatch only positive FUSE opcodes in the main handler |
+| [`d2acdb1`](https://github.com/extfuse/extfuse/commit/d2acdb1c8e4531562fc77fe566896e771d03026e) | Archived HEAD; only adds contact information to the README |
 
-### 파일별 역할
+### File roles
 
-| 파일 | 역할 |
+| File | Role |
 |---|---|
-| [`Makefile`](extfuse/Makefile) | 실행 중인 패치 커널의 kbuild로 `bpf/extfuse.o`와 루트 `libextfuse.so` 빌드 |
-| [`bpf/extfuse.c`](extfuse/bpf/extfuse.c) | main dispatcher, opcode handler, entry/attribute/prog-array BPF map |
-| [`bpf/lookup.h`](extfuse/bpf/lookup.h) | `(parent nodeid, name)` 기반 directory-entry 캐시 구조 |
-| [`bpf/attr.h`](extfuse/bpf/attr.h) | `nodeid` 기반 `fuse_attr_out` 캐시 구조 |
-| [`include/ebpf.h`](extfuse/include/ebpf.h), [`src/ebpf.c`](extfuse/src/ebpf.c) | 반환 규약, BPF ELF load와 map FD 조회·갱신·삭제 API |
-| [`include/extfuse.h`](extfuse/include/extfuse.h) | FUSE opcode 목록; 수정 커널 UAPI와 내부 `extfuse_i.h`에 직접 의존 |
-| [`include/utils.h`](extfuse/include/utils.h), [`src/utils.c`](extfuse/src/utils.c) | namespace/capability 유틸; 현재 library link 목록에 없고 내부 호출도 없는 잔여 코드 |
-| [`LICENSE`](extfuse/LICENSE) | LGPL-2.1 전문; BPF ELF 자체는 GPL helper 사용을 위해 `GPL` license section 선언 |
+| [`Makefile`](extfuse/Makefile) | Build `bpf/extfuse.o` and the root-level `libextfuse.so` using the running patched kernel's kbuild |
+| [`bpf/extfuse.c`](extfuse/bpf/extfuse.c) | Main dispatcher, opcode handlers, and entry/attribute/program-array BPF maps |
+| [`bpf/lookup.h`](extfuse/bpf/lookup.h) | Directory-entry cache keyed by `(parent nodeid, name)` |
+| [`bpf/attr.h`](extfuse/bpf/attr.h) | `fuse_attr_out` cache keyed by `nodeid` |
+| [`include/ebpf.h`](extfuse/include/ebpf.h), [`src/ebpf.c`](extfuse/src/ebpf.c) | Return conventions, BPF ELF loading, and map FD lookup/update/delete APIs |
+| [`include/extfuse.h`](extfuse/include/extfuse.h) | FUSE opcode list; directly depends on the modified kernel UAPI and internal `extfuse_i.h` |
+| [`include/utils.h`](extfuse/include/utils.h), [`src/utils.c`](extfuse/src/utils.c) | Remaining namespace/capability utilities, absent from the library link list and unused internally |
+| [`LICENSE`](extfuse/LICENSE) | Full LGPL-2.1 text; the BPF ELF declares a `GPL` license section to use GPL helpers |
 
-Makefile은 수정 커널의 `samples/bpf/bpf_load.c`와 libbpf 구현을 `src/`로
-복사해 library에 포함한다. 따라서 이 코드는 독립적인 안정 ABI를 쓰는
-library가 아니라 **해당 ExtFUSE 커널 트리와 강하게 결합된 코드**다.
+The Makefile copies `samples/bpf/bpf_load.c` and the libbpf implementation from
+the modified kernel into `src/` and includes them in the library. This code is
+therefore **tightly coupled to that specific ExtFUSE kernel tree**.
 
-### 예제 BPF 정책의 실제 범위
+### Actual scope of the example BPF policy
 
-| opcode | 동작 |
+| Opcode | Behavior |
 |---|---|
-| `LOOKUP`, `GETATTR` | 캐시 hit이면 커널에서 응답; miss이면 upcall |
-| `READ`, `WRITE` | 관련 attribute를 stale 처리한 뒤 upcall |
-| `SETATTR` | attribute 캐시를 삭제한 뒤 upcall |
-| `RENAME`, `RMDIR`, `UNLINK` | entry/attribute 캐시를 무효화한 뒤 upcall |
-| `GETXATTR` | 즉시 `-ENODATA` 반환 |
-| `FLUSH` | 즉시 성공 반환 |
-| 나머지 | 등록 handler가 없어 upcall |
+| `LOOKUP`, `GETATTR` | Respond in the kernel on a cache hit; upcall on a miss |
+| `READ`, `WRITE` | Mark related attributes stale, then upcall |
+| `SETATTR` | Delete cached attributes, then upcall |
+| `RENAME`, `RMDIR`, `UNLINK` | Invalidate entry/attribute caches, then upcall |
+| `GETXATTR` | Immediately return `-ENODATA` |
+| `FLUSH` | Immediately return success |
+| Others | Upcall because no handler is registered |
 
-세 BPF map은 `entry_map`, `attr_map`, `handlers` 순서이며 `handlers`는
-마지막이어야 한다는 주석이 있다. userspace가 map을 숫자 index로 다루므로
-이 선언 순서는 사실상 ABI의 일부다. 이 정책은 범용 FUSE 가속기보다는
-논문과 StackFS 실험을 위한 metadata-cache 예제로 보는 편이 정확하다.
+The three BPF maps are declared in the order `entry_map`, `attr_map`, `handlers`,
+with a comment requiring `handlers` to be last. Since userspace accesses maps
+by numeric index, this declaration order effectively forms part of the ABI.
+The policy is best understood as a metadata-cache example for the paper and
+StackFS experiments.
 
-## 빌드·실행 시 주의점
+## Build and execution considerations
 
-- 저장된 Linux는 5.2 기반 연구용 커널이다. 현대 vanilla 커널에는
-  `BPF_PROG_TYPE_EXTFUSE`, 전용 helper와 `extfuse_i.h`가 없으므로
-  `extfuse/`만 따로 빌드·실행할 수 없다.
-- `CONFIG_BPF_SYSCALL`, `CONFIG_FUSE_FS`, `CONFIG_EXTFUSE`가 필요하다.
-  원본 안내대로 FUSE는 module이 아니라 커널에 built-in하는 편을 전제로
-  한다.
-- `extfuse/Makefile`은 `/lib/modules/$(uname -r)/build`를 사용한다. 즉
-  소스만 가지고 있는 것으로는 부족하고, 대응하는 수정 커널로 부팅한
-  상태와 그 build tree가 필요하다.
-- upstream `extfuse/README.md` 일부는 결과물을 `src/extfuse.o`라고 쓰지만,
-  현재 Makefile과 뒤쪽 복사 예제에 따른 실제 경로는 **`bpf/extfuse.o`**다.
-- README의 LLVM 예시는 `clang-3.8`, `llc-3.8`이다. 현대 LLVM과의
-  호환성은 별도 검증이 필요하다.
-- 이 저장소에는 실행 가능한 파일시스템과 자동 테스트가 없다. 원본
-  실험은 외부 [StackFS](https://github.com/ashishbijlani/StackFS)에 의존한다.
-- `PASSTHRU=1` 상수는 남아 있지만 `HAVE_PASSTHRU`가 비활성이고, 현재
-  커널 경로는 `-ENOSYS`와 나머지만 구분한다. 현재 지원되는 독립 경로로
-  해석하면 안 된다.
+- The archived Linux is a research kernel based on 5.2. Modern vanilla kernels
+  lack `BPF_PROG_TYPE_EXTFUSE`, its dedicated helpers, and `extfuse_i.h`, so
+  `extfuse/` cannot be built and run independently.
+- `CONFIG_BPF_SYSCALL`, `CONFIG_FUSE_FS`, and `CONFIG_EXTFUSE` are required.
+  The original instructions assume FUSE is built into the kernel.
+- `extfuse/Makefile` uses `/lib/modules/$(uname -r)/build`. Having the source
+  alone is insufficient: the corresponding modified kernel must be running,
+  with its build tree available.
+- Parts of the upstream `extfuse/README.md` call the output `src/extfuse.o`,
+  but the Makefile and the later copy example use the actual path
+  **`bpf/extfuse.o`**.
+- The README's LLVM examples use `clang-3.8` and `llc-3.8`. Compatibility with
+  modern LLVM requires separate verification.
+- This repository does not include a runnable filesystem or automated tests.
+  The original experiments depend on external
+  [StackFS](https://github.com/ashishbijlani/StackFS).
+- The `PASSTHRU=1` constant remains, but `HAVE_PASSTHRU` is disabled and the
+  archived kernel path distinguishes only `-ENOSYS` from other return values.
+  Do not interpret it as a currently supported standalone passthrough path.
 
-## 후속 정적 분석 체크포인트
+## Follow-up static analysis checkpoints
 
-다음은 실행으로 버그를 확정한 내용이 아니라, 현재 코드에서 발견한
-추가 검토 대상이다.
+The following are candidates for further review found in the archived code;
+they are not bugs confirmed by execution.
 
-- 커널의 `extfuse_unload_prog()`는 정의·선언되어 있지만 현재 트리에서
-  호출부가 검색되지 않는다. `process_init_reply()`도
-  `extfuse_load_prog()` 반환값을 확인하지 않는다.
-- `LOOKUP` handler는 attribute가 stale인 경우 로그를 남기지만 이후
-  응답 생성을 계속한다. stale cache 처리 의도를 다시 확인할 필요가 있다.
-- `RENAME`의 두 이름 key가 요청 header의 같은 parent nodeid를 사용하므로
-  cross-directory rename을 올바르게 표현하는지 확인할 필요가 있다.
-- `ebpf_data_next()`는 `bpf_map_get_next_key()`에 `&key`, `&next`를 넘긴다.
-  함수 인자가 이미 pointer이므로 pointer level이 의도와 맞는지 확인할
-  필요가 있다.
-- `include/utils.h`/`src/utils.c`는 현재 build graph 밖에 있다.
-- `MAINTAINERS`는 `include/linux/extfuse.h`를 가리키지만 실제 신규 파일은
-  `include/uapi/linux/extfuse.h`다.
+- The kernel's `extfuse_unload_prog()` is defined and declared, but no caller
+  was found in this tree. `process_init_reply()` also ignores the return value
+  of `extfuse_load_prog()`.
+- The `LOOKUP` handler logs stale attributes but continues constructing the
+  response. The intended stale-cache behavior needs review.
+- Both name keys in `RENAME` use the same parent nodeid from the request header.
+  Check whether this correctly represents cross-directory renames.
+- `ebpf_data_next()` passes `&key` and `&next` to `bpf_map_get_next_key()`,
+  although its arguments are already pointers. Check the intended pointer level.
+- `include/utils.h` and `src/utils.c` are outside the current build graph.
+- `MAINTAINERS` points to `include/linux/extfuse.h`, while the actual added file
+  is `include/uapi/linux/extfuse.h`.
 
-연구 프로토타입의 동작과 당시 환경을 보존한 코드이므로, 현재 배포용
-코드로 사용하기 전에는 수명주기, verifier context, error handling,
-동시성 및 최신 커널 ABI를 별도로 검증해야 한다.
+This archive preserves a research prototype and its original environment.
+Before using it in a current deployment, separately verify lifecycle handling,
+verifier context, error handling, concurrency, and modern kernel ABI compatibility.
 
-## 비교 재현 방법
+## Reproducing the comparisons
 
-이미 생성한 전체 patch와 메타데이터는 [`diffs/`](diffs)에 보존되어
-있다. 아래 이력 기반 명령은 삭제 전에 사용한 생성·검증 절차의 기록이다.
-현재 source 디렉터리에는 하위 `.git`이 없으므로 직접 실행할 수 없으며,
-필요하면 보존 bundle 또는 공개 원격에서 Git 이력을 복원한 뒤 사용한다.
+The complete generated patches and metadata are preserved in [`diffs/`](diffs).
+The history-based commands below record the generation and verification
+procedures used before deletion. They cannot run directly in the source
+directories now because those directories no longer have nested `.git`
+directories. Restore the histories from the preserved bundles or public remotes
+in a separate workspace if needed.
 
-### 삭제 전에 사용한 이력 기반 비교 명령
+### History-based comparison commands used before deletion
 
-삭제 전 저장소 최상위에서 실행했다.
+These commands were run from the top-level repository before deletion.
 
 ```bash
 LINUX_BASE=1d039859330b874d48080885eb31f4f129c246f1
@@ -456,7 +487,7 @@ git -C "$LIBFUSE_REPO" diff --stat "$LIBFUSE_BASE..$LIBFUSE_EXT"
 git -C "$LIBFUSE_REPO" diff --name-status "$LIBFUSE_BASE..$LIBFUSE_EXT"
 ```
 
-특정 영역만 볼 때는 마지막에 pathspec을 붙인다.
+To inspect a specific area, append a pathspec.
 
 ```bash
 git -C linux_ExtFUSE-1.0/linux diff \
@@ -468,10 +499,10 @@ git -C libfuse_ExtFUSE-1.0/libfuse diff \
   -- include/fuse_common.h include/fuse_kernel.h lib/fuse_lowlevel.c
 ```
 
-### 현재 사용 가능: 파일 기반 비교
+### Available now: file-based comparisons
 
-Git 이력은 사라져도 원본/수정본 디렉터리가 모두 남으므로 다음 명령으로
-현재 파일 차이를 계속 볼 수 있다.
+Both baseline and modified directories remain available, so the following
+commands can still compare their files without the nested Git histories.
 
 ```bash
 diff -qr \
@@ -491,12 +522,12 @@ git diff --no-index -- \
   libfuse_ExtFUSE-1.0/libfuse/include/fuse_kernel.h
 ```
 
-`diff`와 `git diff --no-index`는 차이가 있으면 종료 코드 `1`을 반환한다.
-이 비교에서는 정상이다.
+`diff` and `git diff --no-index` return exit code `1` when differences are found.
+That is expected for these comparisons.
 
-## 중첩 `.git` 제거 후 보존 상태
+## Preservation after removing the nested `.git` directories
 
-다음 다섯 하위 Git metadata는 제거가 완료되었다.
+The following five nested Git metadata directories have been removed:
 
 ```text
 extfuse/.git
@@ -506,27 +537,33 @@ libfuse_origin/libfuse/.git
 libfuse_ExtFUSE-1.0/libfuse/.git
 ```
 
-현재 `find . -type d -name .git`으로 확인되는 것은 보존해야 할 최상위
-`ExtFUSE_Code/.git` 하나뿐이다. [`diffs/`](diffs)에는 변경 patch뿐 아니라
-43개 정확한 raw commit object, 모든 관련 commit URL, 삭제 직전
-refs/config/reflog inventory, libfuse/extfuse 완전 bundle과 Linux 변경
-전용 bundle, 전체 SHA-256 목록이 남아 있다.
+`find . -type d -name .git` finds only the top-level `ExtFUSE_Code/.git`.
+[`diffs/`](diffs) retains the
+change patches, 43 exact raw commit objects, all relevant commit URLs,
+refs/config/reflog inventories from immediately before deletion, complete
+libfuse/extfuse bundles, the Linux changes-only bundle, and SHA-256 checksums.
 
-삭제 후 source tree ID, patch, bundle과 checksum 검증 결과는
-[`diffs/POST_DELETE_VERIFICATION.md`](diffs/POST_DELETE_VERIFICATION.md)에
-기록했다. 이제 전체 source, `diffs/`, 이 README를 최상위 저장소에
-commit하면 고정 SHA/원격 링크로 원래 이력을 추적하고, 보존 patch와 두
-디렉터리 쌍으로 실제 파일을 계속 비교할 수 있다. Linux 기준점 이전 전체
-upstream object database만 변경 중심 보존 범위에서 제외되며, 그 범위는
-공개 원격 URL로 추적한다.
+[`diffs/POST_DELETE_VERIFICATION.md`](diffs/POST_DELETE_VERIFICATION.md) records
+the source tree ID, patch, bundle, and checksum checks performed after deletion.
+Preserving all source trees, `diffs/`, and this README in the top-level
+repository makes the original history traceable through fixed SHAs and remote
+links, while the patches and paired directories allow direct file comparisons.
+Only the complete upstream Linux object database before the baseline falls
+outside this change-focused archive; public remote URLs identify that history.
 
-## 라이선스
+The English/Korean documentation update preserves the original checksum
+manifest as [`diffs/SHA256SUMS.archive`](diffs/SHA256SUMS.archive). The active
+[`diffs/SHA256SUMS`](diffs/SHA256SUMS) covers the translated documentation and
+Korean copies as well; the archived source, patch, raw object, and bundle
+contents are unchanged. See [integrity and limitations](diffs/README.md#integrity-and-limitations).
 
-이 통합 저장소가 각 구성 요소의 라이선스를 대체하지 않는다.
+## Licenses
 
-- Linux: [`COPYING`](linux_origin/linux/COPYING) 및 파일별 SPDX 표기
+This combined repository does not replace the licenses of its components.
+
+- Linux: [`COPYING`](linux_origin/linux/COPYING) and per-file SPDX identifiers
 - libfuse: [`COPYING`](libfuse_origin/libfuse/COPYING), [`COPYING.LIB`](libfuse_origin/libfuse/COPYING.LIB)
 - extfuse library: [`LICENSE`](extfuse/LICENSE) (LGPL-2.1)
 
-코드를 재사용하거나 배포할 때는 각 파일과 구성 요소의 원래 라이선스를
-따라야 한다.
+Follow the original licenses of each file and component when reusing or
+redistributing the code.

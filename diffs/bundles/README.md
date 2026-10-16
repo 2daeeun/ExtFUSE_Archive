@@ -1,47 +1,56 @@
-# 보존된 Git bundle
+# Preserved Git Bundles
 
-이 디렉터리의 bundle은 하위 `.git`을 삭제한 뒤에도 원래 Git 객체와
-refs를 복원하기 위한 보조 아카이브다.
+**English** | [한국어](README.ko.md)
 
-## 포함 파일
+The bundles in this directory are supplementary archives for restoring the
+original Git objects and refs after the nested `.git` directories have been
+deleted.
 
-- `extfuse.bundle`: `extfuse`의 29개 commit 전체와 모든 refs를 담은
-  완전한 bundle이다.
-- `libfuse.bundle`: `libfuse`의 1,799개 commit, 114개 tag와 두 checkout의
-  합집합인 130개 named ref를 담은 완전한 bundle이다. bundle의 `HEAD`는
-  `ExtFUSE-1.0`이다.
-- `linux-extfuse-changes.bundle`: Linux 원본 기준점 이후의 ExtFUSE 변경
-  9 commit, 38 tree, 23 blob을 원래 Git object로 보존한다. 12,647-byte
-  변경 전용 bundle이며 기준 commit `1d039859...`가 prerequisite다.
+## Included files
 
-extfuse와 libfuse bundle은 `git bundle verify`에서 “complete history”로
-검증되었다. Linux 변경 bundle도 기준 commit이 있는 저장소에서 검증과
-fetch를 통과했고, 복원된 branch는 9개 commit과 원래 HEAD tree
-`0b6b2080e7922a8301df156cd947aeddffd49145`를 정확히 재현했다.
+- `extfuse.bundle`: complete bundle containing all 29 `extfuse` commits and
+  all refs.
+- `libfuse.bundle`: complete bundle containing 1,799 `libfuse` commits,
+  114 tags, and 130 named refs from the union of the two checkouts. Its `HEAD`
+  points to `ExtFUSE-1.0`.
+- `linux-extfuse-changes.bundle`: preserves the original Git objects for
+  nine commits, 38 trees, and 23 blobs covering the ExtFUSE changes after the
+  Linux baseline. This changes-only bundle is 12,647 bytes and requires the
+  baseline commit `1d039859...` as a prerequisite.
 
-## 복원
+The extfuse and libfuse bundles were verified by `git bundle verify` as having
+“complete history.” The Linux changes bundle also passed verification and
+fetching in a repository containing the prerequisite baseline commit. The
+restored branch reproduced all nine commits and the original HEAD tree
+`0b6b2080e7922a8301df156cd947aeddffd49145` exactly.
 
-저장소 최상위에서 다음처럼 복원할 수 있다.
+## Restoration
+
+The examples below record the restoration procedures. Follow the
+[working guidelines](../../AGENTS.md) and run commands that create files in
+a separate workspace containing copies of the required archive files. Paths
+in the examples are relative to the copied archive root.
 
 ```bash
 git clone diffs/bundles/extfuse.bundle restored-extfuse
 git clone diffs/bundles/libfuse.bundle restored-libfuse
 ```
 
-복원 후 원래 공개 remote를 다시 지정하려면 다음 URL을 사용한다.
+To restore the original public remotes afterward, use these URLs:
 
 ```text
 https://github.com/extfuse/extfuse.git
 https://github.com/extfuse/libfuse.git
 ```
 
-### Linux 변경 이력의 오프라인 복원
+### Offline restoration of the Linux change history
 
-Linux bundle은 독립 clone용 완전 bundle이 아니라 base prerequisite가
-있는 증분 bundle이다. 하위 `.git` 삭제 후에도 보존된 원본 source tree와
-raw base commit으로 prerequisite를 만들 수 있다. 저장소 최상위에서 다음
-순서로 복원한다. `git add -f`는 원본 Git에서 추적했지만 ignore 규칙에
-걸리는 빈 파일까지 포함해 정확한 base tree를 만드는 데 필요하다.
+The Linux bundle is incremental and requires a base prerequisite. The
+preserved baseline source tree and raw base commit can reconstruct that
+prerequisite even after the nested `.git` directories are deleted. Use the
+following sequence from the copied archive root. `git add -f` is required to
+include empty files tracked by the original Git repository but matched by
+ignore rules, so that the exact base tree is reproduced.
 
 ```bash
 BASE=1d039859330b874d48080885eb31f4f129c246f1
@@ -64,14 +73,14 @@ git -C restored-linux checkout ExtFUSE-1.0
 test "$(git -C restored-linux write-tree)" = "$HEAD_TREE"
 ```
 
-위 절차를 실제 별도 object database에서 실행해 connectivity 검사
-(`git fsck --connectivity-only --no-dangling`), 9개 변경 commit 수, 최종
-tree를 모두 검증했다. 공개 원격을 사용할 수 있으면 `extfuse/linux`
-clone에 이 bundle을 fetch하는 방식으로도 prerequisite를 만족할 수 있다.
+This procedure was run in a separate object database and verified for
+connectivity (`git fsck --connectivity-only --no-dangling`), the nine changed
+commits, and the final tree. When the public remote is available, fetching this
+bundle into a clone of `extfuse/linux` can also satisfy the prerequisite.
 
-### Linux 변경 bundle 생성 명령
+### Command used to generate the Linux changes bundle
 
-삭제 전 원래 저장소에서 다음 명령으로 생성했다.
+Before deletion, the bundle was generated in the original repository with:
 
 ```bash
 git -C linux_ExtFUSE-1.0/linux bundle create \
@@ -83,35 +92,37 @@ git -C linux_ExtFUSE-1.0/linux bundle verify \
   "$PWD/diffs/bundles/linux-extfuse-changes.bundle"
 ```
 
-bundle SHA-256은
-`0f9907267abb2b48f8682da5bdf2963f32e2d88df59d598555d47d430d6a5cef`다.
+The bundle's SHA-256 is
+`0f9907267abb2b48f8682da5bdf2963f32e2d88df59d598555d47d430d6a5cef`.
 
-## Linux 전체 bundle을 두지 않은 이유
+## Why a complete Linux bundle is not included
 
-삭제 전 두 Linux clone에는 6,815,470개 객체가 든 동일한
-2,754,194,655-byte pack이 각각 있었다. 전체 이력은 850,176개 commit이며
-`.git` 한 벌이 약 2.9 GB였다. 사용자가 지정한 대로 ExtFUSE 변경 이후
-기록에 집중하기 위해 이 거대한 upstream 전체 객체를 다시 복제하지 않았다.
-대신 위 변경 전용 bundle에 `BASE..HEAD` 범위의 commit/tree/blob object를
-모두 넣었다.
+Before deletion, both Linux clones had identical 2,754,194,655-byte packs
+containing 6,815,470 objects. The full history comprised 850,176 commits, and
+each `.git` occupied about 2.9 GB. Following the user's request to focus on
+the ExtFUSE changes, the entire upstream object database was not duplicated
+again. Instead, the changes-only bundle above contains every commit/tree/blob
+object in `BASE..HEAD`.
 
-Linux 분석에 필요한 다음 자료를 저장소 자체에 보존한다.
+The repository preserves the following materials needed for Linux analysis:
 
-- 변경 직전 원본과 최종 ExtFUSE source tree 두 벌
-- 원본 기준 commit과 이후 9개 commit의 원본 GitHub URL
-- 이후 9개 commit의 정확한 commit/tree/blob Git object bundle
-- commit/tree/parent ID, 작성자·커미터, GPG signature를 포함한 정확한
-  raw commit object
-- 커밋별 mailbox, 누적 full-index patch, 파일별 통계와 commit mapping
-- refs/tag/reflog/config/object inventory
+- Both the baseline source tree immediately before the changes and the final
+  ExtFUSE source tree
+- Original GitHub URLs for the baseline commit and nine subsequent commits
+- A bundle of the exact commit/tree/blob Git objects for those nine commits
+- Exact raw commit objects, including commit/tree/parent IDs, author/committer
+  information, and GPG signatures
+- Per-commit mailbox, cumulative full-index patch, per-file statistics, and
+  commit mappings
+- Refs/tags/reflogs/config/object inventories
 
-따라서 ExtFUSE 변경 코드를 분석하고 각 중간 상태를 재구성하는 데는
-Linux 전체 upstream object database가 필요하지 않다. 원본 기준점 이전의
-전체 Linux upstream bundle은 현재 아카이브에 포함되어 있지 않다. 그
-범위까지 다시 탐색하려면 공개 원격에서 이력을 가져와야 한다.
+The complete upstream Linux object database is therefore unnecessary for
+analyzing the ExtFUSE changes and reconstructing intermediate states. This
+archive omits the complete upstream Linux bundle before the baseline. Obtain
+that history from the public remote to explore the earlier range.
 
-GitHub는 일반 Git object 하나의 크기를 100 MiB로 제한하고 push 한도를
-2 GB로 적용하므로, 약 2.9 GB인 Linux 전체 bundle은 이 통합 저장소에
-일반 파일 하나로 넣기에도 적합하지 않다.
+The original archive rationale also cited GitHub's limits of 100 MiB per
+ordinary Git object and 2 GB per push, making a roughly 2.9 GB Linux bundle
+unsuitable as a single ordinary file in this combined repository.
 
-- GitHub 공식 문서: <https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits>
+- Referenced GitHub documentation: <https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits>

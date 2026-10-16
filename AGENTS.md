@@ -20,7 +20,8 @@ the shell's current working directory.
   library, and the preserved git history/patches/bundles for all three lineages (after the five
   nested `.git` dirs were intentionally deleted — see
   `ExtFUSE_Code/diffs/POST_DELETE_VERIFICATION.md`).
-- **Read `ExtFUSE_Code/README.md` first** (Korean) — it documents the directory layout, the
+- **Read `ExtFUSE_Code/README.md` first** (English by default; Korean: `ExtFUSE_Code/README.ko.md`)
+  — it documents the directory layout, the
   preserved git base/HEAD commit pairs for each lineage, ready-made comparison commands, and
   the Figure 6/9 reference CSV schemas. This file summarizes archive contents and write-protection
   policy; use the README for detailed orientation.
@@ -58,7 +59,15 @@ the shell's current working directory.
   [`pdf/atc19-bijlani.pdf`](pdf/atc19-bijlani.pdf), Figures 6/9 and Table 5. These CSVs are
   paper-comparison reference tables, not evidence of a new run of the active ExtFUSE port.
   They do not include raw run logs, repetitions, uncertainty, or the numeric extraction method.
-  See [`README.md`](README.md#논문-figure-69-비교용-csv) for column and config details.
+  See [`README.md`](README.md#paper-figure-69-reference-csvs) for column and config details.
+
+## Documentation languages
+
+- English is the default for archive documentation at its existing `.md` paths.
+- Korean versions are available alongside them as `*.ko.md`; paired documents link to each
+  other at the top.
+- Links between Korean documents use the Korean counterpart where available. Preserve
+  source snapshots and archival payloads when maintaining documentation.
 
 ## Scope
 
